@@ -1,0 +1,1822 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Métodos Numéricos - Ordinario</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+    <style>
+
+        /* Estilos generales */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5; color: #1c1e21; margin: 0; display: flex;
+            justify-content: center; align-items: flex-start; min-height: 100vh; padding: 20px; box-sizing: border-box;
+        }
+        .container {
+            width: 100%; max-width: 900px; background-color: #ffffff; border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); padding: 2rem; box-sizing: border-box;
+        }
+        header { text-align: center; border-bottom: 1px solid #e0e0e0; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+        h1, h2, h3, h4 { color: #0052cc; }
+        h2, h3 { text-align: center; margin-bottom: 1.5rem; }
+        h4 { margin-top: 2rem; border-bottom: 2px solid #007bff; padding-bottom: 0.5rem; }
+        .btn {
+            display: block; width: 100%; padding: 12px 20px; margin: 10px 0; font-size: 16px; font-weight: 600;
+            color: #ffffff; background-color: #007bff; border: none; border-radius: 8px; cursor: pointer;
+            text-align: center; text-decoration: none; transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+        .btn:hover { background-color: #0056b3; }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { background-color: #a1a1a1; cursor: not-allowed; }
+        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary:hover { background-color: #5a6268; }
+        .input-group { display: flex; flex-direction: column; margin-bottom: 1rem; }
+        .input-group label { margin-bottom: 5px; font-weight: 500; color: #495057; }
+        .input-group input, .input-group select {
+            padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 16px; width: 100%; box-sizing: border-box;
+        }
+        .input-row { display: flex; gap: 10px; }
+        .input-table {
+            width: 100%; max-width: 450px; margin: 0 auto 1.5rem auto; border-collapse: collapse;
+        }
+        .input-table th { font-size: 1.1em; font-weight: 600; padding: 12px; text-align: center; color: #0052cc; }
+        .input-table td { padding: 6px; }
+        .input-table input {
+            width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px;
+            font-size: 16px; box-sizing: border-box; text-align: center;
+        }
+        .results-container { margin-top: 2rem; padding: 1.5rem; background-color: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; }
+        .results-container p b { color: #343a40; }
+        .equation {
+            font-family: "Courier New", Courier, monospace; background-color: #e9ecef; padding: 15px; border-radius: 4px;
+            word-wrap: break-word; margin: 10px 0; line-height: 1.6; font-size: 1.1em; overflow-x: auto;
+        }
+        .results-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9em; }
+        .results-table th, .results-table td { border: 1px solid #dee2e6; padding: 8px; text-align: center; }
+        .results-table th { background-color: #e9ecef; font-weight: 600; }
+        .evaluation-section { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; margin-top: 1.5rem; }
+        .evaluation-section input { width: 100%; }
+        .evaluation-section .btn { width: auto; margin: 0; }
+        .matrix-display { display: flex; justify-content: center; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .matrix-display table { border: 2px solid #333; border-collapse: collapse; }
+        .matrix-display td { padding: 8px 12px; text-align: center; border: 1px solid #ccc; }
+        .hidden { display: none; }
+    
+
+        /* Estilos adicionales del Parcial 2 */
+
+        /* Estilos generales */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5; color: #1c1e21; margin: 0; display: flex;
+            justify-content: center; align-items: flex-start; min-height: 100vh; padding: 20px; box-sizing: border-box;
+        }
+        .container {
+            width: 100%; max-width: 900px; background-color: #ffffff; border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); padding: 2rem; box-sizing: border-box;
+        }
+        header { text-align: center; border-bottom: 1px solid #e0e0e0; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+        h1, h2, h3, h4 { color: #0052cc; }
+        h2, h3 { text-align: center; margin-bottom: 1.5rem; }
+        h4 { margin-top: 1.5rem; border-bottom: 2px solid #007bff; padding-bottom: 0.5rem; }
+        
+        /* Botones */
+        .btn {
+            display: block; width: 100%; padding: 12px 20px; margin: 10px 0; font-size: 16px; font-weight: 600;
+            color: #ffffff; background-color: #007bff; border: none; border-radius: 8px; cursor: pointer;
+            text-align: center; text-decoration: none; transition: background-color 0.2s ease;
+        }
+        .btn:hover { background-color: #0056b3; }
+        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary:hover { background-color: #5a6268; }
+
+        /* Controles de formulario */
+        .input-group { display: flex; flex-direction: column; margin-bottom: 1rem; }
+        .input-group label { margin-bottom: 5px; font-weight: 500; color: #495057; }
+        .input-group input, .input-group select {
+            padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 16px; width: 100%; box-sizing: border-box;
+        }
+        .input-row { display: flex; gap: 10px; justify-content: center; }
+        .input-row input { width: 100px; text-align: center;}
+
+        /* Contenedores de resultados */
+        .results-container { 
+            margin-top: 2rem; padding: 1.5rem; background-color: #f8f9fa; 
+            border: 1px solid #e9ecef; border-radius: 8px; 
+        }
+        .equation-input {
+            display: grid;
+            grid-template-columns: auto 1fr auto 1fr;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .equation-input label { font-size: 1.1em; font-weight: bold; }
+        .equation-input input { flex: 1; }
+
+        .results-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9em; table-layout: fixed; }
+        .results-table th, .results-table td { 
+            border: 1px solid #dee2e6; padding: 10px 8px; 
+            text-align: center; word-wrap: break-word;
+        }
+        .results-table th { background-color: #e9ecef; font-weight: 600; }
+        .highlight-row { background-color: #d4edda; font-weight: bold; }
+        .hidden { display: none; }
+        .convergence-check {
+            padding: 15px; background: #eef; border-radius: 8px;
+            font-family: "Courier New", monospace; font-size: 1.1em;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        .convergence-check b { color: #dc3545; }
+
+        /* Estilos para Newton-Raphson */
+        .iteration-box {
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            background: #fff;
+            position: relative;
+        }
+        .iteration-box h3 {
+            position: absolute; top: -15px; left: 15px;
+            background-color: #fff;
+            color: #007bff;
+            padding: 0 10px;
+            margin: 0;
+            text-align: left;
+        }
+        .iteration-box b {
+            display: inline-block;
+            margin-top: 10px;
+            color: #343a40;
+        }
+        .iteration-box table {
+            width: auto; margin: 5px 0 10px 0; border: 1px solid #ccc;
+            border-collapse: collapse;
+        }
+        .iteration-box td {
+            padding: 5px 10px; border: 1px solid #ccc;
+            text-align: center; font-family: "Courier New", monospace;
+        }
+        .equation {
+            font-family: "Courier New", Courier, monospace; background-color: #e9ecef; 
+            padding: 10px; border-radius: 4px; margin: 5px 0 10px 0;
+            font-size: 1.1em; overflow-x: auto;
+        }
+        
+    
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Métodos Numéricos</h1>
+            <h2>Ordinario</h2>
+        </header>
+        <main id="content"></main>
+    </div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Script iniciado');
+    let currentChart = null;
+    const content = document.getElementById('content');
+    
+    if (!content) {
+        console.error('No se encontró el elemento content');
+        return;
+    }
+    
+    // Estado global para el método de Newton (Parcial 2)
+    let nr_state_p2 = {};
+    
+    // Declarar funciones primero (hoisting)
+    let showParcial1Menu, showParcial2Menu;
+    
+    // --- NAVEGACIÓN PRINCIPAL ---
+    const showMainMenu = () => {
+        console.log('Mostrando menú principal');
+        content.innerHTML = `
+            <h2>Selecciona un Método</h2>
+            <h3>Parcial 1</h3>
+            <h4>Interpolación</h4>
+            <button class="btn" id="btn-simple">Interpolación Simple (Lineal)</button>
+            <button class="btn" id="btn-quad">Interpolación Cuadrática (Newton)</button>
+            <button class="btn" id="btn-lagrange-lin">Lagrange Lineal</button>
+            <button class="btn" id="btn-lagrange-quad">Lagrange Cuadrática</button>
+            <button class="btn" id="btn-newton">Newton - Diferencias Divididas</button>
+            <h4>Regresión y Raíces</h4>
+            <button class="btn" id="btn-ls">Mínimos Cuadrados</button>
+            <button class="btn" id="btn-nr">Raíces: Newton-Raphson</button>
+            <button class="btn" id="btn-secant">Raíces: Secantes</button>
+            <h3>Parcial 2</h3>
+            <button class="btn" id="btn-fixed-point">Sist. No Lineales: Punto Fijo</button>
+            <button class="btn" id="btn-newton-nl">Sist. No Lineales: Newton-Raphson</button>
+            <h3>Ordinario</h3>
+            <button class="btn" id="btn-ordinario-ls">Interpolación Mínimos Cuadrados</button>
+            <button class="btn" id="btn-ordinario-nr">Newton Raphson Solución de Ecuaciones</button>
+            <button class="btn" id="btn-ordinario-simpson">Integración Numérica Método de Simpson</button>
+            <button class="btn" id="btn-ordinario-trapecio">Integración Numérica Método del Trapecio</button>
+            <button class="btn" id="btn-ordinario-determinante">Sistemas de Ecuaciones Lineales con Determinante</button>
+        `;
+        // Event listeners para Parcial 1
+        const btnSimple = document.getElementById('btn-simple');
+        const btnQuad = document.getElementById('btn-quad');
+        const btnLagrangeLin = document.getElementById('btn-lagrange-lin');
+        const btnLagrangeQuad = document.getElementById('btn-lagrange-quad');
+        const btnNewton = document.getElementById('btn-newton');
+        const btnLs = document.getElementById('btn-ls');
+        const btnNr = document.getElementById('btn-nr');
+        const btnSecant = document.getElementById('btn-secant');
+        // Event listeners para Parcial 2
+        const btnFixedPoint = document.getElementById('btn-fixed-point');
+        const btnNewtonNL = document.getElementById('btn-newton-nl');
+        // Event listeners para Ordinario
+        const btnOrdinarioLs = document.getElementById('btn-ordinario-ls');
+        const btnOrdinarioNr = document.getElementById('btn-ordinario-nr');
+        const btnOrdinarioSimpson = document.getElementById('btn-ordinario-simpson');
+        const btnOrdinarioTrapecio = document.getElementById('btn-ordinario-trapecio');
+        const btnOrdinarioDeterminante = document.getElementById('btn-ordinario-determinante');
+        
+        if (btnSimple) btnSimple.addEventListener('click', () => switchView(showSimpleInterpolation));
+        if (btnQuad) btnQuad.addEventListener('click', () => switchView(showQuadratic));
+        if (btnLagrangeLin) btnLagrangeLin.addEventListener('click', () => switchView(showLagrangeLinear));
+        if (btnLagrangeQuad) btnLagrangeQuad.addEventListener('click', () => switchView(showLagrangeQuadratic));
+        if (btnNewton) btnNewton.addEventListener('click', () => switchView(showNewton));
+        if (btnLs) btnLs.addEventListener('click', () => switchView(showLeastSquares));
+        if (btnNr) btnNr.addEventListener('click', () => switchView(showNewtonRaphson));
+        if (btnSecant) btnSecant.addEventListener('click', () => switchView(showSecantMethod));
+        if (btnFixedPoint) btnFixedPoint.addEventListener('click', () => switchView(showFixedPoint));
+        if (btnNewtonNL) btnNewtonNL.addEventListener('click', () => switchView(showNewtonRaphsonNL));
+        // Ordinario: reutilizar funciones existentes o mostrar en construcción
+        if (btnOrdinarioLs) btnOrdinarioLs.addEventListener('click', () => switchView(showLeastSquares));
+        if (btnOrdinarioNr) btnOrdinarioNr.addEventListener('click', () => switchView(showNewtonRaphson));
+        if (btnOrdinarioSimpson) btnOrdinarioSimpson.addEventListener('click', () => switchView(showSimpson));
+        if (btnOrdinarioTrapecio) btnOrdinarioTrapecio.addEventListener('click', () => switchView(showTrapecio));
+        if (btnOrdinarioDeterminante) btnOrdinarioDeterminante.addEventListener('click', () => switchView(showDeterminante));
+    };
+    
+    const switchView = (viewFunction) => {
+        if (currentChart) { currentChart.destroy(); currentChart = null; }
+        content.innerHTML = '';
+        nr_state_p2 = {}; // Reiniciar estado de Newton al cambiar de vista
+        viewFunction();
+    };
+    
+    const addBackButton = (targetMenu) => {
+        const backButton = document.createElement('button');
+        backButton.className = 'btn btn-secondary';
+        backButton.textContent = 'Regresar al Menú';
+        backButton.addEventListener('click', () => switchView(targetMenu));
+        content.appendChild(backButton);
+    };
+    
+    // --- PARCIAL 1 ---
+    
+    const addBackButtonP1 = () => {
+        const backButton = document.createElement('button');
+        backButton.className = 'btn btn-secondary';
+        backButton.textContent = 'Regresar al Menú';
+        backButton.addEventListener('click', () => switchView(showMainMenu));
+        content.appendChild(backButton);
+    };
+
+    showParcial1Menu = () => {
+        content.innerHTML = `
+            <h2>Selecciona un Método</h2>
+            <h3>Interpolación</h3>
+            <button class="btn" id="btn-simple">Interpolación Simple (Lineal)</button>
+            <button class="btn" id="btn-quad">Interpolación Cuadrática (Newton)</button>
+            <button class="btn" id="btn-lagrange-lin">Lagrange Lineal</button>
+            <button class="btn" id="btn-lagrange-quad">Lagrange Cuadrática</button>
+            <button class="btn" id="btn-newton">Newton - Diferencias Divididas</button>
+            <h3>Regresión y Raíces</h3>
+            <button class="btn" id="btn-ls">Mínimos Cuadrados</button>
+            <button class="btn" id="btn-nr">Raíces: Newton-Raphson</button>
+            <button class="btn" id="btn-secant">Raíces: Secantes</button>
+        `;
+        document.getElementById('btn-simple').addEventListener('click', () => switchView(showSimpleInterpolation));
+        document.getElementById('btn-quad').addEventListener('click', () => switchView(showQuadratic));
+        document.getElementById('btn-lagrange-lin').addEventListener('click', () => switchView(showLagrangeLinear));
+        document.getElementById('btn-lagrange-quad').addEventListener('click', () => switchView(showLagrangeQuadratic));
+        document.getElementById('btn-newton').addEventListener('click', () => switchView(showNewton));
+        document.getElementById('btn-ls').addEventListener('click', () => switchView(showLeastSquares));
+        document.getElementById('btn-nr').addEventListener('click', () => switchView(showNewtonRaphson));
+        document.getElementById('btn-secant').addEventListener('click', () => switchView(showSecantMethod));
+    };
+
+    // --- INTERPOLACIÓN SIMPLE (LINEAL) ---
+    const showSimpleInterpolation = () => {
+        content.innerHTML = `<h2>Interpolación Simple (Lineal)</h2><table class="input-table"><thead><tr><th>X</th><th>Y (f(x))</th></tr></thead><tbody><tr><td><input type="number" id="s-x0" placeholder="x₀"></td><td><input type="number" id="s-y0" placeholder="f(x₀)"></td></tr><tr><td><input type="number" id="s-x1" placeholder="x₁"></td><td><input type="number" id="s-y1" placeholder="f(x₁)"></td></tr></tbody></table><button class="btn" id="calculate-simple">Calcular</button><div id="simple-results" class="results-container hidden"></div>`;
+        addBackButtonP1();
+        document.getElementById('calculate-simple').addEventListener('click', calculateSimpleInterpolation);
+    };
+    const calculateSimpleInterpolation = () => {
+        try {
+            const x0 = parseFloat(document.getElementById('s-x0').value); const y0 = parseFloat(document.getElementById('s-y0').value);
+            const x1 = parseFloat(document.getElementById('s-x1').value); const y1 = parseFloat(document.getElementById('s-y1').value);
+            if ([x0, y0, x1, y1].some(isNaN)) throw new Error("Todos los campos deben ser números válidos.");
+            if (x0 === x1) throw new Error("Los valores de 'x' deben ser distintos.");
+            const slope = (y1 - y0) / (x1 - x0);
+            const polyFunc = x => y0 + slope * (x - x0);
+            const resultsContainer = document.getElementById('simple-results');
+            resultsContainer.classList.remove('hidden');
+            resultsContainer.innerHTML = `<h3>Resultados</h3><p><b>Ecuación General:</b></p><div class="equation">f₁(x) = f(x₀) + ( (f(x₁) - f(x₀)) / (x₁ - x₀) ) * (x - x₀)</div><p><b>Ecuación Sustituida:</b></p><div class="equation">f₁(x) = ${y0.toFixed(4)} + ( (${y1} - ${y0}) / (${x1} - ${x0}) ) * (x - ${x0})</div><p><b>Ecuación Simplificada:</b></p><div class="equation">f₁(x) = ${y0.toFixed(4)} + ${slope.toFixed(4)}(x - ${x0})</div><h3>Evaluar</h3><div class="evaluation-section"><input type="number" id="eval-x" placeholder="Valor de x"><button class="btn" id="eval-btn">Evaluar</button></div><div id="eval-equation" class="equation hidden"></div><p id="eval-result" style="text-align:center; color:#28a745; font-weight:bold;"></p><h3>Gráfica</h3><canvas id="chart"></canvas>`;
+            document.getElementById('eval-btn').addEventListener('click', () => {
+                const xVal = parseFloat(document.getElementById('eval-x').value);
+                if (!isNaN(xVal)) {
+                    const yVal = polyFunc(xVal);
+                    document.getElementById('eval-equation').innerHTML = `f₁(${xVal}) = ${y0.toFixed(4)} + ${slope.toFixed(4)}(${xVal} - ${x0})`;
+                    document.getElementById('eval-equation').classList.remove('hidden');
+                    document.getElementById('eval-result').innerText = `Valor Aproximado f₁(${xVal}) ≈ ${yVal.toFixed(4)}`;
+                }
+            });
+            plotChart([x0, x1], [y0, y1], polyFunc);
+        } catch (e) { alert(`Error: ${e.message}`); }
+    };
+    
+    // --- INTERPOLACIÓN CUADRÁTICA (FORMA NEWTON) ---
+    const showQuadratic = () => {
+        content.innerHTML = `<h2>Interpolación Cuadrática (Forma Newton)</h2><p style="text-align:center;">Este método utiliza la fórmula de Newton para 3 puntos.</p><table class="input-table"><thead><tr><th>X</th><th>Y</th></tr></thead><tbody><tr><td><input type="number" id="q-x0" placeholder="x₀"></td><td><input type="number" id="q-y0" placeholder="y₀"></td></tr><tr><td><input type="number" id="q-x1" placeholder="x₁"></td><td><input type="number" id="q-y1" placeholder="y₁"></td></tr><tr><td><input type="number" id="q-x2" placeholder="x₂"></td><td><input type="number" id="q-y2" placeholder="y₂"></td></tr></tbody></table><button class="btn" id="calculate-quadratic">Calcular</button><div id="quadratic-results" class="results-container hidden"></div>`;
+        addBackButtonP1();
+        document.getElementById('calculate-quadratic').addEventListener('click', calculateQuadratic);
+    };
+    const calculateQuadratic = () => {
+        try {
+            const pointsX = [parseFloat(document.getElementById('q-x0').value), parseFloat(document.getElementById('q-x1').value), parseFloat(document.getElementById('q-x2').value)];
+            const pointsY = [parseFloat(document.getElementById('q-y0').value), parseFloat(document.getElementById('q-y1').value), parseFloat(document.getElementById('q-y2').value)];
+            if (pointsX.some(isNaN) || pointsY.some(isNaN)) throw new Error("Todos los campos deben ser números válidos.");
+            if (new Set(pointsX).size !== 3) throw new Error("Los valores de 'x' deben ser distintos.");
+            const [x0, x1, x2] = pointsX; const [y0, y1, y2] = pointsY;
+            const b0 = y0; const b1 = (y1 - y0) / (x1 - x0); const b2 = (((y2 - y1) / (x2 - x1)) - b1) / (x2 - x0);
+            const resultsContainer = document.getElementById('quadratic-results');
+            resultsContainer.classList.remove('hidden');
+            const polyFunc = x => b0 + b1 * (x - x0) + b2 * (x - x0) * (x - x1);
+            resultsContainer.innerHTML = `<h3>Resultados</h3><p><b>Coeficientes (Betas):</b></p><div class="equation">b₀ = ${b0.toFixed(4)}<br>b₁ = ${b1.toFixed(4)}<br>b₂ = ${b2.toFixed(4)}</div><p><b>Ecuación General:</b></p><div class="equation">f₂(x) = b₀ + b₁(x - x₀) + b₂(x - x₀)(x - x₁)</div><p><b>Ecuación Sustituida:</b></p><div class="equation">f₂(x) = ${b0.toFixed(4)} + (${b1.toFixed(4)})(x - ${x0}) + (${b2.toFixed(4)})(x - ${x0})(x - ${x1})</div><h3>Evaluar</h3><div class="evaluation-section"><input type="number" id="eval-x" placeholder="Valor de x"><button class="btn" id="eval-btn">Evaluar</button></div><div id="eval-equation" class="equation hidden"></div><p id="eval-result" style="text-align:center; color:#28a745; font-weight:bold;"></p><h3>Gráfica</h3><canvas id="chart"></canvas>`;
+            document.getElementById('eval-btn').addEventListener('click', () => {
+                const xVal = parseFloat(document.getElementById('eval-x').value);
+                if (!isNaN(xVal)) {
+                    const yVal = polyFunc(xVal);
+                    const substitutedEq = `f₂(${xVal}) = ${b0.toFixed(4)} + (${b1.toFixed(4)})(${xVal} - ${x0}) + (${b2.toFixed(4)})(${xVal} - ${x0})(${xVal} - ${x1})`;
+                    document.getElementById('eval-equation').innerHTML = substitutedEq;
+                    document.getElementById('eval-equation').classList.remove('hidden');
+                    document.getElementById('eval-result').innerText = `Valor Aproximado f₂(${xVal}) ≈ ${yVal.toFixed(4)}`;
+                }
+            });
+            plotChart(pointsX, pointsY, polyFunc);
+        } catch (e) { alert(`Error: ${e.message}`); }
+    };
+    
+    // --- LAGRANGE LINEAL ---
+    const showLagrangeLinear = () => {
+        content.innerHTML = `<h2>Interpolación de Lagrange (Lineal)</h2><table class="input-table"><thead><tr><th>X</th><th>Y (f(x))</th></tr></thead><tbody><tr><td><input type="number" id="ll-x0" placeholder="x₀"></td><td><input type="number" id="ll-y0" placeholder="f(x₀)"></td></tr><tr><td><input type="number" id="ll-x1" placeholder="x₁"></td><td><input type="number" id="ll-y1" placeholder="f(x₁)"></td></tr></tbody></table><button class="btn" id="calculate-ll">Calcular</button><div id="ll-results" class="results-container hidden"></div>`;
+        addBackButtonP1();
+        document.getElementById('calculate-ll').addEventListener('click', calculateLagrangeLinear);
+    };
+    const calculateLagrangeLinear = () => {
+        try {
+            const x0 = parseFloat(document.getElementById('ll-x0').value); const y0 = parseFloat(document.getElementById('ll-y0').value);
+            const x1 = parseFloat(document.getElementById('ll-x1').value); const y1 = parseFloat(document.getElementById('ll-y1').value);
+            if ([x0, y0, x1, y1].some(isNaN)) throw new Error("Todos los campos deben ser números válidos.");
+            if (x0 === x1) throw new Error("Los valores de 'x' deben ser distintos.");
+            const polyFunc = x => ((x - x1) / (x0 - x1)) * y0 + ((x - x0) / (x1 - x0)) * y1;
+            const resultsContainer = document.getElementById('ll-results');
+            resultsContainer.classList.remove('hidden');
+            resultsContainer.innerHTML = `<h3>Resultados</h3><p><b>Ecuación General (Lagrange, Grado 1):</b></p><div class="equation">P₁(x) = ((x - x₁)/(x₀ - x₁))f(x₀) + ((x - x₀)/(x₁ - x₀))f(x₁)</div><p><b>Ecuación Sustituida:</b></p><div class="equation">P₁(x) = ((x - ${x1})/(${x0} - ${x1}))(${y0}) + ((x - ${x0})/(${x1} - ${x0}))(${y1})</div><h3>Evaluar</h3><div class="evaluation-section"><input type="number" id="eval-x" placeholder="Valor de x"><button class="btn" id="eval-btn">Evaluar</button></div><div id="eval-equation" class="equation hidden"></div><p id="eval-result" style="text-align:center; color:#28a745; font-weight:bold;"></p><h3>Gráfica</h3><canvas id="chart"></canvas>`;
+            document.getElementById('eval-btn').addEventListener('click', () => {
+                const xVal = parseFloat(document.getElementById('eval-x').value);
+                if (!isNaN(xVal)) {
+                    const yVal = polyFunc(xVal);
+                    document.getElementById('eval-equation').innerHTML = `P₁(${xVal}) = ((${xVal} - ${x1})/(${x0} - ${x1}))(${y0}) + ((${xVal} - ${x0})/(${x1} - ${x0}))(${y1})`;
+                    document.getElementById('eval-equation').classList.remove('hidden');
+                    document.getElementById('eval-result').innerText = `Valor Aproximado P₁(${xVal}) ≈ ${yVal.toFixed(4)}`;
+                }
+            });
+            plotChart([x0, x1], [y0, y1], polyFunc);
+        } catch (e) { alert(`Error: ${e.message}`); }
+    };
+    
+    // --- LAGRANGE CUADRÁTICA ---
+    const showLagrangeQuadratic = () => {
+        content.innerHTML = `<h2>Interpolación de Lagrange (Cuadrática)</h2><table class="input-table"><thead><tr><th>X</th><th>Y (f(x))</th></tr></thead><tbody><tr><td><input type="number" id="lq-x0" placeholder="x₀"></td><td><input type="number" id="lq-y0" placeholder="f(x₀)"></td></tr><tr><td><input type="number" id="lq-x1" placeholder="x₁"></td><td><input type="number" id="lq-y1" placeholder="f(x₁)"></td></tr><tr><td><input type="number" id="lq-x2" placeholder="x₂"></td><td><input type="number" id="lq-y2" placeholder="f(x₂)"></td></tr></tbody></table><button class="btn" id="calculate-lq">Calcular</button><div id="lq-results" class="results-container hidden"></div>`;
+        addBackButtonP1();
+        document.getElementById('calculate-lq').addEventListener('click', calculateLagrangeQuadratic);
+    };
+    const calculateLagrangeQuadratic = () => {
+        try {
+            const pointsX = [parseFloat(document.getElementById('lq-x0').value), parseFloat(document.getElementById('lq-x1').value), parseFloat(document.getElementById('lq-x2').value)];
+            const pointsY = [parseFloat(document.getElementById('lq-y0').value), parseFloat(document.getElementById('lq-y1').value), parseFloat(document.getElementById('lq-y2').value)];
+            if (pointsX.some(isNaN) || pointsY.some(isNaN)) throw new Error("Todos los campos deben ser números válidos.");
+            if (new Set(pointsX).size !== 3) throw new Error("Los valores de 'x' deben ser distintos.");
+            const [x0, x1, x2] = pointsX; const [y0, y1, y2] = pointsY;
+            const polyFunc = x => {
+                const L0 = ((x - x1) * (x - x2)) / ((x0 - x1) * (x0 - x2));
+                const L1 = ((x - x0) * (x - x2)) / ((x1 - x0) * (x1 - x2));
+                const L2 = ((x - x0) * (x - x1)) / ((x2 - x0) * (x2 - x1));
+                return y0 * L0 + y1 * L1 + y2 * L2;
+            };
+            const resultsContainer = document.getElementById('lq-results');
+            resultsContainer.classList.remove('hidden');
+            resultsContainer.innerHTML = `<h3>Resultados</h3><p><b>Ecuación General (Lagrange, Grado 2):</b></p><div class="equation" style="font-size: 0.9em;">P₂(x) = ((x-x₁)(x-x₂))/((x₀-x₁)(x₀-x₂))f(x₀) +<br>((x-x₀)(x-x₂))/((x₁-x₀)(x₁-x₂))f(x₁) +<br>((x-x₀)(x-x₁))/((x₂-x₀)(x₂-x₁))f(x₂)</div><p><b>Ecuación Sustituida:</b></p><div class="equation" style="font-size: 0.9em;">P₂(x) = ((x-${x1})(x-${x2}))/((${x0}-${x1})(${x0}-${x2}))(${y0}) +<br>((x-${x0})(x-${x2}))/((${x1}-${x0})(${x1}-${x2}))(${y1}) +<br>((x-${x0})(x-${x1}))/((${x2}-${x0})(${x2}-${x1}))(${y2})</div><h3>Evaluar</h3><div class="evaluation-section"><input type="number" id="eval-x" placeholder="Valor de x"><button class="btn" id="eval-btn">Evaluar</button></div><div id="eval-equation" class="equation hidden"></div><p id="eval-result" style="text-align:center; color:#28a745; font-weight:bold;"></p><h3>Gráfica</h3><canvas id="chart"></canvas>`;
+            document.getElementById('eval-btn').addEventListener('click', () => {
+                const xVal = parseFloat(document.getElementById('eval-x').value);
+                if (!isNaN(xVal)) {
+                    document.getElementById('eval-result').innerText = `Valor Aproximado P₂(${xVal}) ≈ ${polyFunc(xVal).toFixed(4)}`;
+                }
+            });
+            plotChart(pointsX, pointsY, polyFunc);
+        } catch (e) { alert(`Error: ${e.message}`); }
+    };
+
+    // --- NEWTON DIFERENCIAS DIVIDIDAS ---
+    const showNewton = () => {
+        content.innerHTML = `<h2>Newton – Diferencias Divididas</h2><div class="input-group" style="max-width: 450px; margin: auto;"><label for="newton-degree">Selecciona el grado del polinomio:</label><select id="newton-degree"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></div><div id="newton-inputs"></div><button class="btn" id="calculate-newton">Calcular</button><div id="newton-results" class="results-container hidden"></div>`;
+        addBackButtonP1();
+        const degreeSelector = document.getElementById('newton-degree');
+        degreeSelector.addEventListener('change', () => createNewtonInputs(degreeSelector.value));
+        createNewtonInputs(degreeSelector.value);
+        document.getElementById('calculate-newton').addEventListener('click', calculateNewton);
+    };
+    const createNewtonInputs = (degree) => {
+        const nPoints = parseInt(degree) + 1;
+        const inputsContainer = document.getElementById('newton-inputs');
+        let tableHTML = `<h3>Puntos (x, y) - Se requieren ${nPoints} puntos</h3><table class="input-table"><thead><tr><th>X</th><th>Y</th></tr></thead><tbody>`;
+        for (let i = 0; i < nPoints; i++) {
+            tableHTML += `<tr><td><input type="number" class="newton-x" placeholder="x${i}"></td><td><input type="number" class="newton-y" placeholder="y${i} (f(x${i}))"></td></tr>`;
+        }
+        tableHTML += `</tbody></table>`;
+        inputsContainer.innerHTML = tableHTML;
+    };
+    const calculateNewton = () => {
+        try {
+            const pointsX = Array.from(document.getElementsByClassName('newton-x')).map(el => parseFloat(el.value));
+            const pointsY = Array.from(document.getElementsByClassName('newton-y')).map(el => parseFloat(el.value));
+            if (pointsX.some(isNaN) || pointsY.some(isNaN)) throw new Error("Todos los campos de puntos deben ser números válidos.");
+            if (new Set(pointsX).size !== pointsX.length) throw new Error("Los valores de 'x' deben ser distintos.");
+            const n = pointsX.length;
+            const diffTable = Array(n).fill(0).map(() => Array(n).fill(0));
+            pointsY.forEach((y, i) => diffTable[i][0] = y);
+            for (let j = 1; j < n; j++) {
+                for (let i = 0; i < n - j; i++) {
+                    diffTable[i][j] = (diffTable[i + 1][j - 1] - diffTable[i][j - 1]) / (pointsX[i + j] - pointsX[i]);
+                }
+            }
+            const polyCoeffs = diffTable[0];
+            const polyFunc = (x) => {
+                let result = polyCoeffs[0];
+                for (let i = 1; i < n; i++) {
+                    let term = polyCoeffs[i];
+                    for (let j = 0; j < i; j++) { term *= (x - pointsX[j]); }
+                    result += term;
+                }
+                return result;
+            };
+            let polyString = `${polyCoeffs[0].toFixed(4)}`;
+            for (let i = 1; i < polyCoeffs.length; i++) {
+                if (polyCoeffs[i] === 0) continue;
+                const sign = polyCoeffs[i] > 0 ? ' + ' : ' - ';
+                let termString = `${Math.abs(polyCoeffs[i]).toFixed(4)}`;
+                for (let j = 0; j < i; j++) { termString += `(x - ${pointsX[j]})`; }
+                polyString += sign + termString;
+            }
+            
+            const resultsContainer = document.getElementById('newton-results');
+            resultsContainer.classList.remove('hidden');
+            resultsContainer.innerHTML = `<h3>Tabla de Diferencias Divididas</h3><table class="results-table"><thead><tr><th>X</th><th>f(X)</th>${Array.from({length: n-1}, (_, i) => `<th>Orden ${i+1}</th>`).join('')}</tr></thead><tbody>${pointsX.map((px, i) => `<tr><td>${px}</td>${diffTable[i].map((val, j) => i <= n-1-j ? `<td>${val.toFixed(5)}</td>` : '').join('')}</tr>`).join('')}</tbody></table><p><b>Coeficientes (Betas):</b></p><div class="equation">${polyCoeffs.map((b, i) => `b${i} = ${b.toFixed(5)}`).join('<br>')}</div><p><b>Polinomio de Newton:</b></p><div class="equation">${polyString}</div><h3>Evaluar</h3><div class="evaluation-section"><input type="number" id="eval-x" placeholder="Valor de x"><button class="btn" id="eval-btn">Evaluar</button></div><p id="eval-result" style="text-align:center; color:#28a745; font-weight:bold;"></p><h3>Gráfica</h3><canvas id="chart"></canvas>`;
+            document.getElementById('eval-btn').addEventListener('click', () => {
+                const xVal = parseFloat(document.getElementById('eval-x').value);
+                if (!isNaN(xVal)) {
+                    document.getElementById('eval-result').innerText = `Valor Aproximado P(${xVal}) ≈ ${polyFunc(xVal).toFixed(4)}`;
+                }
+            });
+            plotChart(pointsX, pointsY, polyFunc);
+        } catch (e) { alert(`Error: ${e.message}`); }
+    };
+
+    // --- MÍNIMOS CUADRADOS ---
+    const showLeastSquares = () => {
+        content.innerHTML = `<h2>Mínimos Cuadrados</h2><div class="input-group" style="max-width: 300px; margin: auto;"><label for="ls-n-points">¿Cuántos puntos (x, y) existen?</label><input type="number" id="ls-n-points" min="3" placeholder="Ej: 9"></div><button class="btn" id="ls-generate-inputs" style="max-width: 300px; margin: 1rem auto;">Generar Campos</button><div id="ls-inputs-container"></div><div id="ls-results" class="results-container hidden"></div>`;
+        addBackButtonP1();
+        document.getElementById('ls-generate-inputs').addEventListener('click', createLeastSquaresInputs);
+    };
+    const createLeastSquaresInputs = () => {
+        const n = parseInt(document.getElementById('ls-n-points').value);
+        if (isNaN(n) || n < 3) { alert("Por favor, introduce un número de puntos válido (mínimo 3)."); return; }
+        const container = document.getElementById('ls-inputs-container');
+        let tableHTML = `<table class="input-table"><thead><tr><th>X</th><th>Y (f(x))</th></tr></thead><tbody>`;
+        for (let i = 0; i < n; i++) {
+            tableHTML += `<tr><td><input type="number" class="ls-x" placeholder="x${i+1}"></td><td><input type="number" class="ls-y" placeholder="y${i+1}"></td></tr>`;
+        }
+        tableHTML += `</tbody></table><button class="btn" id="ls-calculate">Calcular</button>`;
+        container.innerHTML = tableHTML;
+        document.getElementById('ls-calculate').addEventListener('click', calculateLeastSquares);
+    };
+    const calculateLeastSquares = () => {
+        try {
+            const inputsX = document.getElementsByClassName('ls-x'); const inputsY = document.getElementsByClassName('ls-y');
+            const points = [];
+            for (let i = 0; i < inputsX.length; i++) {
+                const x = parseFloat(inputsX[i].value); const y = parseFloat(inputsY[i].value);
+                if (isNaN(x) || isNaN(y)) throw new Error(`Dato inválido en el punto ${i+1}.`);
+                points.push({ x, y });
+            }
+            if (points.length < 3) throw new Error("Se necesitan al menos 3 puntos.");
+            const n = points.length;
+            const sum = { x: 0, y: 0, x2: 0, x3: 0, x4: 0, xy: 0, x2y: 0 };
+            points.forEach(p => { sum.x += p.x; sum.y += p.y; sum.x2 += p.x**2; sum.x3 += p.x**3; sum.x4 += p.x**4; sum.xy += p.x * p.y; sum.x2y += (p.x**2) * p.y; });
+            const y_mean = sum.y / n;
+            let SST = 0;
+            points.forEach(p => { SST += (p.y - y_mean)**2; });
+            const A_lin = math.matrix([[n, sum.x], [sum.x, sum.x2]]); const b_lin = math.matrix([sum.y, sum.xy]);
+            const A_inv_lin = math.inv(A_lin); const coeffs_lin = math.multiply(A_inv_lin, b_lin).toArray();
+            const [a0_lin, a1_lin] = coeffs_lin;
+            const f_lin = x => a0_lin + a1_lin * x;
+            let SSE_lin = 0; points.forEach(p => { SSE_lin += (p.y - f_lin(p.x))**2; });
+            const R2_lin = 1 - (SSE_lin / SST);
+            const A_quad = math.matrix([[n, sum.x, sum.x2], [sum.x, sum.x2, sum.x3], [sum.x2, sum.x3, sum.x4]]);
+            const b_quad = math.matrix([sum.y, sum.xy, sum.x2y]);
+            const A_inv_quad = math.inv(A_quad); const coeffs_quad = math.multiply(A_inv_quad, b_quad).toArray();
+            const [a0_quad, a1_quad, a2_quad] = coeffs_quad;
+            const f_quad = x => a0_quad + a1_quad * x + a2_quad * x**2;
+            let SSE_quad = 0; points.forEach(p => { SSE_quad += (p.y - f_quad(p.x))**2; });
+            const R2_quad = 1 - (SSE_quad / SST);
+            const resultsContainer = document.getElementById('ls-results');
+            resultsContainer.classList.remove('hidden');
+            resultsContainer.innerHTML = `<h3>Tabla de Sumatorias</h3><table class="results-table"><thead><tr><th>Σx</th><th>Σy</th><th>Σx²</th><th>Σx³</th><th>Σx⁴</th><th>Σxy</th><th>Σx²y</th></tr></thead><tbody><tr><td>${sum.x.toFixed(4)}</td><td>${sum.y.toFixed(4)}</td><td>${sum.x2.toFixed(4)}</td><td>${sum.x3.toFixed(4)}</td><td>${sum.x4.toFixed(4)}</td><td>${sum.xy.toFixed(4)}</td><td>${sum.x2y.toFixed(4)}</td></tr></tbody></table><h4>A. Ecuación Lineal</h4><div class="matrix-display"><div><b>Matriz A</b><br>${matrixToHTML(A_lin.toArray())}</div><div><b>Vector b</b><br>${matrixToHTML(b_lin.toArray().map(v => [v]))}</div><div><b>Matriz Inversa A⁻¹</b><br>${matrixToHTML(A_inv_lin.toArray())}</div></div><p><b>Coeficientes:</b></p><div class="equation">a₀ = ${a0_lin.toFixed(6)}<br>a₁ = ${a1_lin.toFixed(6)}</div><p><b>Ecuación:</b></p><div class="equation">y = ${a0_lin.toFixed(4)} + ${a1_lin.toFixed(4)}x</div><p><b>Coeficiente de Determinación (R²):</b></p><div class="equation">R² = ${R2_lin.toFixed(6)}</div><div class="evaluation-section"><input type="number" id="eval-lin-x" placeholder="Evaluar en x"><button class="btn" id="eval-lin-btn">Evaluar</button></div><div id="eval-lin-eq" class="equation hidden"></div><p id="eval-lin-result" style="text-align:left; color:#28a745; font-weight:bold;"></p><h4>B. Ecuación Cuadrática</h4><div class="matrix-display"><div><b>Matriz A</b><br>${matrixToHTML(A_quad.toArray())}</div><div><b>Vector b</b><br>${matrixToHTML(b_quad.toArray().map(v => [v]))}</div><div><b>Matriz Inversa A⁻¹</b><br>${matrixToHTML(A_inv_quad.toArray())}</div></div><p><b>Coeficientes:</b></p><div class="equation">a₀ = ${a0_quad.toFixed(6)}<br>a₁ = ${a1_quad.toFixed(6)}<br>a₂ = ${a2_quad.toFixed(6)}</div><p><b>Ecuación:</b></p><div class="equation">y = ${a0_quad.toFixed(4)} + ${a1_quad.toFixed(4)}x + ${a2_quad.toFixed(4)}x²</div><p><b>Coeficiente de Determinación (R²):</b></p><div class="equation">R² = ${R2_quad.toFixed(6)}</div><div class="evaluation-section"><input type="number" id="eval-quad-x" placeholder="Evaluar en x"><button class="btn" id="eval-quad-btn">Evaluar</button></div><div id="eval-quad-eq" class="equation hidden"></div><p id="eval-quad-result" style="text-align:left; color:#28a745; font-weight:bold;"></p><h3>Gráfica Comparativa</h3><canvas id="chart"></canvas>`;
+            document.getElementById('eval-lin-btn').addEventListener('click', () => {
+                const x = parseFloat(document.getElementById('eval-lin-x').value); if(isNaN(x)) return;
+                document.getElementById('eval-lin-eq').innerHTML = `y = ${a0_lin.toFixed(4)} + ${a1_lin.toFixed(4)}(${x})`;
+                document.getElementById('eval-lin-eq').classList.remove('hidden');
+                document.getElementById('eval-lin-result').innerText = `Resultado: y ≈ ${f_lin(x).toFixed(4)}`;
+            });
+            document.getElementById('eval-quad-btn').addEventListener('click', () => {
+                const x = parseFloat(document.getElementById('eval-quad-x').value); if(isNaN(x)) return;
+                document.getElementById('eval-quad-eq').innerHTML = `y = ${a0_quad.toFixed(4)} + ${a1_quad.toFixed(4)}(${x}) + ${a2_quad.toFixed(4)}(${x})²`;
+                document.getElementById('eval-quad-eq').classList.remove('hidden');
+                document.getElementById('eval-quad-result').innerText = `Resultado: y ≈ ${f_quad(x).toFixed(4)}`;
+            });
+            plotLeastSquares(points, f_lin, f_quad);
+        } catch (e) { alert(`Error: ${e.message}`); }
+    };
+
+    // --- NEWTON-RAPHSON ---
+    const showNewtonRaphson = () => {
+        content.innerHTML = `<h2>Raíces: Método de Newton-Raphson</h2><div id="nr-workflow"><div id="nr-step1"><h4>Paso 1: Ingresa la Ecuación</h4><div class="input-group"><label for="nr-eq">Escribe la función f(x):</label><input type="text" id="nr-eq" placeholder="Ej: 2*x^3 - 11.7*x^2 + 17.7*x - 5"></div><button class="btn" id="nr-process-eq">Procesar Ecuación</button></div><div id="nr-step2-container"></div><div id="nr-step3-container"></div><div id="nr-step4-container"></div></div>`;
+        addBackButtonP1();
+        document.getElementById('nr-process-eq').addEventListener('click', () => {
+            document.getElementById('nr-step2-container').innerHTML = ''; document.getElementById('nr-step3-container').innerHTML = ''; document.getElementById('nr-step4-container').innerHTML = '';
+            if (currentChart) { currentChart.destroy(); currentChart = null; }
+            try {
+                const eqStr = document.getElementById('nr-eq').value;
+                if (!eqStr) throw new Error("La ecuación no puede estar vacía.");
+                const node = math.parse(eqStr); const derivNode = math.derivative(node, 'x'); const simplifiedDeriv = math.simplify(derivNode);
+                const func = node.compile(); const funcDeriv = simplifiedDeriv.compile();
+                const derivString = simplifiedDeriv.toString({ fraction: 'decimal', implicit: 'hide' });
+                const step2Container = document.getElementById('nr-step2-container');
+                step2Container.innerHTML = `<div id="nr-step2"><h4>Paso 2: Graficar para Estimar una Raíz</h4><p>Tu función y su derivada simplificada son:</p><div class="equation">f(x) = ${node.toString({implicit: 'hide'})}</div><div class="equation">f'(x) = ${derivString}</div><p>Ingresa un rango para graficar f(x).</p><div class="input-row"><input type="number" id="nr-range-min" placeholder="Valor X Mínimo"><input type="number" id="nr-range-max" placeholder="Valor X Máximo"></div><button class="btn" id="nr-plot">Graficar</button></div>`;
+                document.getElementById('nr-plot').addEventListener('click', () => {
+                    document.getElementById('nr-step3-container').innerHTML = ''; document.getElementById('nr-step4-container').innerHTML = '';
+                    const min = parseFloat(document.getElementById('nr-range-min').value); const max = parseFloat(document.getElementById('nr-range-max').value);
+                    if (isNaN(min) || isNaN(max) || min >= max) { alert("Ingresa un rango válido."); return; }
+                    const step3Container = document.getElementById('nr-step3-container');
+                    step3Container.innerHTML = `<div id="nr-step3"><canvas id="chart"></canvas><h4>Paso 3: Realizar Iteraciones</h4><p>Observa la gráfica y elige un valor inicial (x₀) cercano a una raíz.</p><div class="input-row"><input type="number" id="nr-x0" placeholder="Valor inicial x₀"><input type="number" id="nr-iterations" placeholder="Nº de iteraciones"></div><button class="btn" id="nr-calculate">Calcular Tabla</button></div>`;
+                    const xValues = [], yValues = []; const step = (max - min) / 200;
+                    for (let x = min; x <= max; x += step) { xValues.push(x.toFixed(4)); yValues.push(func.evaluate({ x })); }
+                    if (currentChart) { currentChart.destroy(); }
+                    currentChart = new Chart(document.getElementById('chart').getContext('2d'), { type: 'line', data: { labels: xValues, datasets: [{ label: `f(x) = ${eqStr}`, data: yValues, borderColor: '#007bff', fill: false, borderWidth: 2, pointRadius: 0 }] }, options: { scales: { y: { beginAtZero: false }, x: { ticks: { maxTicksLimit: 10 } } } } });
+                    document.getElementById('nr-calculate').addEventListener('click', () => {
+                        document.getElementById('nr-step4-container').innerHTML = '';
+                        const x0 = parseFloat(document.getElementById('nr-x0').value); const iter = parseInt(document.getElementById('nr-iterations').value);
+                        if (isNaN(x0) || isNaN(iter) || iter <= 0) { alert("Ingresa un valor inicial y un número de iteraciones válidos."); return; }
+                        let tableData = [], xn = x0, firstZeroFound = false;
+                        for (let i = 1; i <= iter; i++) {
+                            const fxn = func.evaluate({ x: xn }); const fpxn = funcDeriv.evaluate({ x: xn });
+                            if (Math.abs(fpxn) < 1e-12) { alert("La derivada se hizo cero. El método no puede continuar."); break; }
+                            const xn1 = xn - (fxn / fpxn);
+                            const ea = (xn1 !== 0) ? Math.abs((xn1 - xn) / xn1) * 100 : 0;
+                            let highlight = false;
+                            if (ea < 1e-7 && !firstZeroFound) { highlight = true; firstZeroFound = true; }
+                            tableData.push({ i, xn, fxn, fpxn, xn1, ea, highlight });
+                            xn = xn1;
+                        }
+                        const finalRoot = tableData.length > 0 ? tableData[tableData.length - 1].xn1 : NaN;
+                        const step4Container = document.getElementById('nr-step4-container');
+                        step4Container.innerHTML = `<div id="nr-results" class="results-container"><h4>Paso 4: Resultados</h4><table class="results-table"><thead><tr><th>i</th><th>Xn</th><th>f(xn)</th><th>f'(xn)</th><th>xn+1</th><th>Ea (%)</th></tr></thead><tbody>${tableData.map(row => `<tr ${row.highlight ? 'style="background-color: #d4edda;"' : ''}><td>${row.i}</td><td>${row.xn.toFixed(8)}</td><td>${row.fxn.toExponential(4)}</td><td>${row.fpxn.toFixed(8)}</td><td>${row.xn1.toFixed(8)}</td><td>${row.ea.toFixed(8)}</td></tr>`).join('')}</tbody></table><h4>Verificación Final</h4><div class="evaluation-section"><input type="number" id="nr-verify-x" value="${finalRoot.toFixed(8)}"><button class="btn" id="nr-verify-btn">Verificar</button></div><div id="nr-verify-eq" class="equation hidden"></div><div id="nr-verify-result" style="font-weight: bold; text-align: center;"></div></div>`;
+                        document.getElementById('nr-verify-btn').addEventListener('click', () => {
+                            const x_root = parseFloat(document.getElementById('nr-verify-x').value); if(isNaN(x_root)) return;
+                            const final_result = func.evaluate({x: x_root});
+                            document.getElementById('nr-verify-eq').innerText = node.toString().replace(/x/g, `(${x_root})`);
+                            document.getElementById('nr-verify-eq').classList.remove('hidden');
+                            document.getElementById('nr-verify-result').innerText = `f(${x_root}) ≈ ${final_result.toExponential(4)}`;
+                        });
+                    });
+                });
+            } catch (e) { alert(`Error procesando la función: ${e.message}\n\nSugerencia: Intenta escribir la ecuación sin paréntesis innecesarios. Por ejemplo: 2*x^3 - 11.7*x^2 + 17.7*x - 5`); }
+        });
+    };
+
+    // --- MÉTODO DE LA SECANTE ---
+    const showSecantMethod = () => {
+        content.innerHTML = `<h2>Raíces: Método de la Secante</h2><div id="sec-workflow"><div id="sec-step1"><h4>Paso 1: Ingresa la Ecuación y Grafica</h4><div class="input-group"><label for="sec-eq">Escribe la función f(x):</label><input type="text" id="sec-eq" placeholder="Ej: exp(-x) - x"></div><div class="input-row"><input type="number" id="sec-range-min" placeholder="Valor X Mínimo"><input type="number" id="sec-range-max" placeholder="Valor X Máximo"></div><button class="btn" id="sec-plot">Graficar</button></div><div id="sec-step2-container"></div><div id="sec-step3-container"></div></div>`;
+        addBackButtonP1();
+        document.getElementById('sec-plot').addEventListener('click', () => {
+            document.getElementById('sec-step2-container').innerHTML = ''; document.getElementById('sec-step3-container').innerHTML = '';
+            if (currentChart) { currentChart.destroy(); currentChart = null; }
+            try {
+                const eqStr = document.getElementById('sec-eq').value;
+                if (!eqStr) throw new Error("La ecuación no puede estar vacía.");
+                const node = math.parse(eqStr); const func = node.compile();
+                const min = parseFloat(document.getElementById('sec-range-min').value);
+                const max = parseFloat(document.getElementById('sec-range-max').value);
+                if (isNaN(min) || isNaN(max) || min >= max) { alert("Ingresa un rango válido."); return; }
+                const step2Container = document.getElementById('sec-step2-container');
+                step2Container.innerHTML = `<div id="sec-step2"><canvas id="chart"></canvas><h4>Paso 2: Ingresa Parámetros</h4><p>Observa la gráfica y elige dos valores iniciales cercanos a una raíz.</p><div class="input-row"><input type="number" id="sec-xi-1" placeholder="Valor inicial xᵢ₋₁"><input type="number" id="sec-xi" placeholder="Valor inicial xᵢ"></div><div class="input-row"><input type="number" id="sec-tol" placeholder="Tolerancia (ej: 0.001)"><input type="number" id="sec-max-iter" placeholder="Nº de Iteraciones"></div><button class="btn" id="sec-calculate">Calcular Tabla</button></div>`;
+                const xValues = [], yValues = []; const step = (max - min) / 200;
+                for (let x = min; x <= max; x += step) {
+                    xValues.push(x.toFixed(4));
+                    yValues.push(func.evaluate({ x }));
+                }
+                currentChart = new Chart(document.getElementById('chart').getContext('2d'), { type: 'line', data: { labels: xValues, datasets: [{ label: `f(x) = ${eqStr}`, data: yValues, borderColor: '#007bff', fill: false, borderWidth: 2, pointRadius: 0 }] }, options: { scales: { y: { beginAtZero: false }, x: { ticks: { maxTicksLimit: 10 } } } } });
+                document.getElementById('sec-calculate').addEventListener('click', () => {
+                    document.getElementById('sec-step3-container').innerHTML = '';
+                    try {
+                        let xi_1 = parseFloat(document.getElementById('sec-xi-1').value); let xi = parseFloat(document.getElementById('sec-xi').value);
+                        const tol = parseFloat(document.getElementById('sec-tol').value); const maxIter = parseInt(document.getElementById('sec-max-iter').value);
+                        if ([xi_1, xi, tol, maxIter].some(isNaN)) throw new Error("Todos los parámetros deben ser números válidos.");
+                        let tableData = [], convergenceReached = false;
+                        for (let i = 0; i < maxIter; i++) {
+                            const fxi_1 = func.evaluate({ x: xi_1 }); const fxi = func.evaluate({ x: xi });
+                            let xi_p1, error;
+                            if (Math.abs(fxi - fxi_1) < 1e-12) {
+                                xi_p1 = NaN; error = NaN;
+                            } else {
+                                xi_p1 = xi - fxi * (xi - xi_1) / (fxi - fxi_1);
+                                error = (xi_p1 !== 0) ? Math.abs((xi_p1 - xi) / xi_p1) * 100 : 0;
+                            }
+                            let highlight = false;
+                            if (typeof error === 'number' && error < tol && !convergenceReached) {
+                                convergenceReached = true; highlight = true;
+                            }
+                            tableData.push({ iteracion: i + 1, xi_1, xi, fxi_1, fxi, xi_p1, error, highlight });
+                            xi_1 = xi;
+                            if (typeof xi_p1 === 'number') { xi = xi_p1; }
+                        }
+                        if (tableData.length === 0) throw new Error("No se pudo generar ninguna iteración.");
+                        const finalRoot = tableData.filter(r => typeof r.xi_p1 === 'number').pop()?.xi_p1 ?? NaN;
+                        const step3Container = document.getElementById('sec-step3-container');
+                        step3Container.innerHTML = `<div id="sec-results" class="results-container"><h4>Resultados</h4><table class="results-table"><thead><tr><th>Iteración</th><th>xᵢ₋₁</th><th>xᵢ</th><th>f(xᵢ₋₁)</th><th>f(xᵢ)</th><th>xᵢ₊₁</th><th>Ea (%)</th></tr></thead><tbody>${tableData.map(row => `<tr ${row.highlight ? 'style="background-color: #FFF3CD;"' : ''}><td>${row.iteracion}</td><td>${row.xi_1.toFixed(6)}</td><td>${row.xi.toFixed(6)}</td><td>${row.fxi_1.toExponential(4)}</td><td>${row.fxi.toExponential(4)}</td><td>${typeof row.xi_p1 === 'number' ? row.xi_p1.toFixed(6) : '#DIV/0!'}</td><td>${typeof row.error === 'number' ? row.error.toFixed(6) : '#DIV/0!'}</td></tr>`).join('')}</tbody></table><h4>Verificación Final</h4><div class="evaluation-section"><input type="number" id="sec-verify-x" value="${isNaN(finalRoot) ? '' : finalRoot.toFixed(8)}"><button class="btn" id="sec-verify-btn">Verificar</button></div><div id="sec-verify-eq" class="equation hidden"></div><div id="sec-verify-result" style="font-weight: bold; text-align: center;"></div></div>`;
+                        document.getElementById('sec-verify-btn').addEventListener('click', () => {
+                            const x_root = parseFloat(document.getElementById('sec-verify-x').value); if(isNaN(x_root)) return;
+                            const final_result = func.evaluate({x: x_root});
+                            document.getElementById('sec-verify-eq').innerText = node.toString().replace(/x/g, `(${x_root})`);
+                            document.getElementById('sec-verify-eq').classList.remove('hidden');
+                            document.getElementById('sec-verify-result').innerText = `f(${x_root}) ≈ ${final_result.toExponential(4)}`;
+                        });
+                    } catch (e) { alert(`Error en el cálculo: ${e.message}`); }
+                });
+            } catch (e) { alert(`Error procesando la función: ${e.message}`); }
+        });
+    };
+    
+    // --- PLOTTERS Y HELPERS ADICIONALES ---
+    const plotChart = (pointsX, pointsY, polyFunc) => {
+        const canvas = document.getElementById('chart'); if (!canvas) return;
+        const ctx = canvas.getContext('2d'); if (currentChart) { currentChart.destroy(); }
+        const scatterData = pointsX.map((x, i) => ({ x, y: pointsY[i] }));
+        const minX = Math.min(...pointsX); const maxX = Math.max(...pointsX);
+        const range = maxX - minX; const lineData = []; const steps = 100;
+        const startX = range === 0 ? minX - 1 : minX - range * 0.2;
+        const endX = range === 0 ? maxX + 1 : maxX + range * 0.2;
+        const stepSize = (endX - startX) / steps;
+        for (let i = 0; i <= steps; i++) {
+            const x = startX + i * stepSize;
+            lineData.push({ x, y: polyFunc(x) });
+        }
+        currentChart = new Chart(ctx, {
+            type: 'scatter',
+            data: { datasets: [ { label: 'Polinomio', data: lineData, type: 'line', borderColor: '#007bff', fill: false, borderWidth: 2, pointRadius: 0 }, { label: 'Puntos', data: scatterData, backgroundColor: '#dc3545', pointRadius: 6 } ] },
+            options: { responsive: true, scales: { x: { type: 'linear', position: 'bottom' }, y: {} } }
+        });
+    };
+    const plotLeastSquares = (points, f_lin, f_quad) => {
+        const canvas = document.getElementById('chart'); if (!canvas) return;
+        const ctx = canvas.getContext('2d'); if (currentChart) { currentChart.destroy(); }
+        const scatterData = points.map(p => ({ x: p.x, y: p.y }));
+        const minX = Math.min(...points.map(p => p.x)); const maxX = Math.max(...points.map(p => p.x));
+        const range = maxX - minX;
+        const startX = minX - range * 0.1; const endX = maxX + range * 0.1;
+        const lineData_lin = []; const lineData_quad = [];
+        for (let x = startX; x <= endX; x += (endX - startX) / 100) {
+            lineData_lin.push({ x, y: f_lin(x) });
+            lineData_quad.push({ x, y: f_quad(x) });
+        }
+        currentChart = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    { label: 'Puntos Originales', data: scatterData, backgroundColor: '#000000' },
+                    { label: 'Regresión Lineal', data: lineData_lin, type: 'line', borderColor: '#dc3545', fill: false, borderWidth: 2, pointRadius: 0 },
+                    { label: 'Regresión Cuadrática', data: lineData_quad, type: 'line', borderColor: '#007bff', fill: false, borderWidth: 2, pointRadius: 0 }
+                ]
+            },
+            options: { responsive: true, scales: { x: { type: 'linear', position: 'bottom' }, y: {} } }
+        });
+    };
+    const matrixToHTML = (matrixArray) => {
+        let html = '<table>';
+        matrixArray.forEach(row => {
+            html += '<tr>';
+            row.forEach(cell => { html += `<td>${cell.toFixed(6)}</td>`; });
+            html += '</tr>';
+        });
+        return html + '</table>';
+    };
+
+    // --- PARCIAL 2 ---
+    
+    const addBackButtonP2 = () => {
+        const backButton = document.createElement('button');
+        backButton.className = 'btn btn-secondary';
+        backButton.textContent = 'Regresar al Menú';
+        backButton.addEventListener('click', () => switchView(showMainMenu));
+        content.appendChild(backButton);
+    };
+    
+    // Funciones para mostrar matrices y vectores en HTML (Parcial 2)
+    const vectorToHTML = (vector, horizontal = false) => {
+        if (horizontal) {
+            return '<table><tr>' + vector.map(cell => `<td>${cell.toFixed(6)}</td>`).join('') + '</tr></table>';
+        }
+        let html = '<table>';
+        vector.forEach(cell => {
+            html += `<tr><td>${cell.toFixed(6)}</td></tr>`;
+        });
+        return html + '</table>';
+    };
+    const formulasToHTML = (matrix) => {
+        let html = '<table>';
+        matrix.forEach(row => {
+            html += '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
+        });
+        return html + '</table>';
+    };
+
+    /**
+     * **NUEVA FUNCIÓN**
+     * Traduce funciones matemáticas comunes del español al inglés para math.js.
+     * Ej: sen -> sin, tg -> tan, ln -> log.
+     * Usa \b (word boundary) para evitar reemplazar "arsen" o "tangente".
+     */
+    const normalizeEquation = (eqStr) => {
+        if (!eqStr) return '';
+        return eqStr
+            .replace(/\bsen\b/g, 'sin')
+            .replace(/\btg\b/g, 'tan')
+            .replace(/\bln\b/g, 'log') // math.js 'log' es ln por defecto
+            .replace(/\bctg\b/g, 'cot')
+            .replace(/\bcsc\b/g, 'csc');
+        // 'cos' y 'sec' son iguales en ambos idiomas.
+        // 'pi' y 'e' son reconocidos por math.js como constantes.
+    };
+
+
+    // --- MENÚ PRINCIPAL ---
+    showParcial2Menu = () => {
+        content.innerHTML = `
+            <h2>Selecciona un Método</h2>
+            <button class="btn" id="btn-fixed-point">Sist. No Lineales: Punto Fijo</button>
+            <button class="btn" id="btn-newton-nl">Sist. No Lineales: Newton-Raphson</button>
+        `;
+        document.getElementById('btn-fixed-point').addEventListener('click', () => switchView(showFixedPoint));
+        document.getElementById('btn-newton-nl').addEventListener('click', () => switchView(showNewtonRaphsonNL));
+    };
+
+    // --- 1. MÉTODO DE PUNTO FIJO (SISTEMAS) ---
+    const showFixedPoint = () => {
+        content.innerHTML = `
+            <h2>Sistemas No Lineales: Método de Punto Fijo</h2>
+            <div id="fp-setup">
+                <div class="input-group" style="max-width: 300px; margin: auto;">
+                    <label for="fp-n-vars">¿Cuántas variables tiene el sistema?</label>
+                    <select id="fp-n-vars" class="input-group-select">
+                        <option value="2" selected>2 (x, y)</option>
+                        <option value="3">3 (x, y, z)</option>
+                        <option value="4">4 (x, y, z, w)</option>
+                    </select>
+                </div>
+                
+                <div id="fp-inputs-container"></div>
+            </div>
+            <div id="fp-results" class="results-container hidden">
+                <div id="fp-despejes-results"></div>
+                <div id="fp-convergence-results"></div>
+                <div id="fp-table-results"></div>
+            </div>
+        `;
+        addBackButtonP2();
+        
+        const nVarsSelector = document.getElementById('fp-n-vars');
+        nVarsSelector.addEventListener('change', () => createFixedPointInputs(nVarsSelector.value));
+        createFixedPointInputs(nVarsSelector.value); // Carga inicial
+    };
+
+    const createFixedPointInputs = (nStr) => {
+        const n = parseInt(nStr);
+        const container = document.getElementById('fp-inputs-container');
+        const varNames = ['x', 'y', 'z', 'w'].slice(0, n); // CAMBIO: Añadido 'w'
+        
+        let equationsHTML = `<h4>Paso 1: Ingresa las ecuaciones (f_i = 0)</h4>
+                             <p style="text-align:center; font-size: 0.9em;">Ingresa la ecuación original y el término lineal a despejar (ej: "-10*x" o "1*y").</p>`;
+        for (let i = 0; i < n; i++) {
+            equationsHTML += `<div class="equation-input">
+                <label for="fp-eq-${i}">f${i+1} =</label>
+                <input type="text" id="fp-f-eq-${i}" placeholder="Ecuación ${i+1} (ej: x^2 - 10*x + y^2 + 8)">
+                <label for="fp-term-${i}">Despejar:</label>
+                <input type="text" id="fp-term-${i}" placeholder="Término para ${varNames[i]} (ej: -10*x)">
+            </div>`;
+        }
+
+        let initialValuesHTML = '<h4>Paso 2: Valores iniciales y tolerancia</h4><div class="input-row">';
+        for (let i = 0; i < n; i++) {
+            initialValuesHTML += `<input type="number" id="fp-x0-${i}" placeholder="${varNames[i]}₀" value="0">`;
+        }
+        initialValuesHTML += `</div>
+            <div class="input-group" style="max-width:300px; margin: 1.5rem auto;">
+                <label for="fp-tol">Error Esperado (EP)</label>
+                <input type="number" id="fp-tol" placeholder="Ej: 0.05" value="0.05">
+            </div>`;
+        
+        container.innerHTML = equationsHTML + initialValuesHTML + '<button class="btn" id="fp-calculate">Calcular</button>';
+        document.getElementById('fp-calculate').addEventListener('click', calculateFixedPoint);
+    };
+
+    const calculateFixedPoint = () => {
+        try {
+            const n = parseInt(document.getElementById('fp-n-vars').value);
+            const varNames = ['x', 'y', 'z', 'w'].slice(0, n); // CAMBIO: Añadido 'w'
+            const tol = parseFloat(document.getElementById('fp-tol').value);
+            
+            let g_funcs = []; // Funciones g_i compiladas
+            let g_nodes = []; // Funciones g_i parseadas (para derivadas)
+            let k_values = []; // k_values = [x_k, y_k, ...]
+            let scope = {};
+            
+            for (let i = 0; i < n; i++) {
+                // --- CAMBIO: Normalizar ecuaciones ---
+                let f_str = normalizeEquation(document.getElementById(`fp-f-eq-${i}`).value);
+                let term_str = normalizeEquation(document.getElementById(`fp-term-${i}`).value);
+                // --- FIN CAMBIO ---
+
+                if (!f_str || !term_str) throw new Error("Todas las ecuaciones y términos a despejar deben estar completos.");
+                
+                // Extraer el coeficiente numérico del término
+                const coeff = parseFloat(term_str);
+                if (isNaN(coeff)) throw new Error(`El término a despejar "${term_str}" no es válido. Use "1*x", "-10*y", etc.`);
+
+                // Construir la ecuación g_i = (-1 * (f_i - term_i)) / coeff
+                const g_str = `(-1 * ( (${f_str}) - (${term_str}) )) / (${coeff})`;
+                
+                g_nodes.push(math.parse(g_str));
+                g_funcs.push(g_nodes[i].compile());
+                
+                k_values.push(parseFloat(document.getElementById(`fp-x0-${i}`).value));
+            }
+            
+            if (k_values.some(isNaN) || isNaN(tol)) throw new Error("Valores iniciales y tolerancia deben ser números.");
+
+            // --- 0. MOSTRAR DESPEJES ---
+            let despejesHTML = '<h4>Ecuaciones Despejadas (g_i)</h4>';
+            for (let i = 0; i < n; i++) {
+                // Simplificamos la fórmula para que sea más legible
+                despejesHTML += `<div class="equation">${varNames[i]} = ${math.simplify(g_nodes[i]).toString()}</div>`;
+            }
+            document.getElementById('fp-despejes-results').innerHTML = despejesHTML;
+
+            
+            // --- 1. CRITERIO DE CONVERGENCIA ---
+            varNames.forEach((v, i) => scope[v] = k_values[i]);
+            let convergenceHTML = '<h4>Criterio de Convergencia (en k=0)</h4><div class="convergence-check">';
+            let passesConvergence = true;
+
+            for (let i = 0; i < n; i++) { // Para |∂g₁/∂x| + |∂g₂/∂x| + ... (Columna)
+                let M_sum = 0;
+                let sumStr = `<b>Evaluando para ${varNames[i]}:</b><br>`;
+                for (let j = 0; j < n; j++) { // Suma de derivadas de g_j (Fila)
+                    const derivNode = math.derivative(g_nodes[j], varNames[i]).compile();
+                    const derivVal = Math.abs(derivNode.evaluate(scope));
+                    M_sum += derivVal;
+                    sumStr += `|∂g${j+1}/∂${varNames[i]}| = ${derivVal.toFixed(6)}<br>`;
+                }
+                convergenceHTML += `${sumStr}<b>Suma M_${varNames[i]} = ${M_sum.toFixed(6)}</b><br><br>`;
+                if (M_sum >= 1) passesConvergence = false;
+            }
+            
+            if (passesConvergence) {
+                convergenceHTML += '<b style="color:#28a745;">Resultado: Criterio < 1. ¡El método CONVERGE!</b>';
+            } else {
+                convergenceHTML += '<b>Resultado: Criterio >= 1. ADVERTENCIA: ¡El método podría DIVERGER!</b>';
+            }
+            convergenceHTML += '</div>';
+            document.getElementById('fp-convergence-results').innerHTML = convergenceHTML;
+            
+            // --- 2. ITERACIONES (Método Jacobi) ---
+            let iteration = 0;
+            const maxIterations = 100;
+            let Ep = Infinity;
+            let tableBodyHTML = '';
+            
+            let tableHeaderHTML = '<th>Iter.</th>';
+            varNames.forEach(v => tableHeaderHTML += `<th>${v}<sub>k</sub></th>`);
+            varNames.forEach(v => tableHeaderHTML += `<th>${v}<sub>k+1</sub></th>`);
+            tableHeaderHTML += '<th>EP</th>';
+
+            while (Ep > tol && iteration < maxIterations) {
+                iteration++;
+                let k_plus_1_values = [];
+                let scope_k = {}; // Este scope se basa SÓLO en k_values (Jacobi)
+                varNames.forEach((v, i) => scope_k[v] = k_values[i]);
+                
+                // Calcular todos los nuevos valores k+1 (Método Jacobi)
+                for (let i = 0; i < n; i++) {
+                    const new_val_i = g_funcs[i].evaluate(scope_k);
+                    k_plus_1_values.push(new_val_i);
+                    // NO actualizamos el scope_k aquí
+                }
+                
+                // Calcular Error (EP)
+                let sum_sq_diff = 0;
+                for (let i = 0; i < n; i++) {
+                    sum_sq_diff += Math.pow(k_plus_1_values[i] - k_values[i], 2);
+                }
+                Ep = Math.sqrt(sum_sq_diff);
+                
+                // Construir fila de la tabla
+                let rowHTML = `<td>${iteration}</td>`;
+                k_values.forEach(v => rowHTML += `<td>${v.toFixed(8)}</td>`);
+                k_plus_1_values.forEach(v => rowHTML += `<td>${v.toFixed(8)}</td>`);
+                rowHTML += `<td>${Ep.toFixed(8)}</td>`;
+                
+                const highlightClass = (Ep <= tol) ? 'class="highlight-row"' : '';
+                tableBodyHTML += `<tr ${highlightClass}>${rowHTML}</tr>`;
+
+                // Actualizar valores para la siguiente iteración
+                k_values = [...k_plus_1_values];
+                
+                if (Ep <= tol) break; // Detenerse si se alcanza la tolerancia
+            }
+            
+            const resultsTableContainer = document.getElementById('fp-table-results');
+            resultsTableContainer.innerHTML = `<h4>Tabla de Iteraciones</h4>
+                                              <div style="overflow-x:auto;">
+                                                 <table class="results-table">
+                                                    <thead><tr>${tableHeaderHTML}</tr></thead>
+                                                    <tbody>${tableBodyHTML}</tbody>
+                                                 </table>
+                                              </div>`;
+            document.getElementById('fp-results').classList.remove('hidden');
+
+            if (iteration >= maxIterations) {
+                 alert("El método no convergió después de " + maxIterations + " iteraciones.");
+            }
+
+        } catch (e) {
+            alert(`Error: ${e.Error}\n\nMensaje: ${e.message}`);
+        }
+    };
+
+
+    // --- 2. MÉTODO DE NEWTON-RAPHSON (SISTEMAS) ---
+    const showNewtonRaphsonNL = () => {
+        content.innerHTML = `
+            <h2>Sistemas No Lineales: Método de Newton-Raphson</h2>
+            <div id="nr-setup">
+                <div class="input-group" style="max-width: 300px; margin: auto;">
+                    <label for="nr-n-vars">¿Cuántas variables tiene el sistema?</label>
+                    <select id="nr-n-vars" class="input-group-select">
+                        <option value="2" selected>2 (x, y)</option>
+                        <option value="3">3 (x, y, z)</option>
+                        <option value="4">4 (x, y, z, w)</option> </select>
+                </div>
+                <div id="nr-inputs-container"></div>
+            </div>
+            <div id="nr-results" class="results-container hidden">
+                <div id="nr-iteration-boxes"></div>
+                <button classid="nr-next-iter-btn" class="btn">Siguiente Iteración</button>
+            </div>
+        `;
+        addBackButtonP2();
+        
+        const nVarsSelector = document.getElementById('nr-n-vars');
+        nVarsSelector.addEventListener('change', () => createNewtonInputsNL(nVarsSelector.value));
+        createNewtonInputsNL(nVarsSelector.value); // Carga inicial
+    };
+    
+    const createNewtonInputsNL = (nStr) => {
+        const n = parseInt(nStr);
+        const container = document.getElementById('nr-inputs-container');
+        const variables = ['x', 'y', 'z', 'w'].slice(0, n); 
+        
+        let equationsHTML = '<h4>Paso 1: Ingresa las ecuaciones (igualadas a 0)</h4>';
+        for (let i = 0; i < n; i++) {
+            equationsHTML += `<div class="equation-input" style="grid-template-columns: auto 1fr;">
+                <label for="nr-eq-${i}">f${i+1}(${variables.join(',')}) =</label>
+                <input type="text" id="nr-eq-${i}" placeholder="Ej: x^2 + y^2 - 4">
+            </div>`;
+        }
+
+        let initialValuesHTML = '<h4>Paso 2: Valores iniciales</h4><div class="input-row">';
+        for (let i = 0; i < n; i++) {
+            initialValuesHTML += `<input type="number" id="nr-x0-${i}" placeholder="${variables[i]}₀" value="1">`;
+        }
+        initialValuesHTML += `</div>`;
+        
+        container.innerHTML = equationsHTML + initialValuesHTML + '<button class="btn" id="nr-start-calculate">Iniciar Cálculo</button>';
+        document.getElementById('nr-start-calculate').addEventListener('click', startNewtonCalculation);
+    };
+
+    const startNewtonCalculation = () => {
+        try {
+            const n = parseInt(document.getElementById('nr-n-vars').value);
+            const variables = ['x', 'y', 'z', 'w'].slice(0, n); 
+            let equations = [];
+            let initial_values = [];
+
+            let f_nodes = [];
+            let j_nodes = [];
+            let j_formulas = [];
+            
+            for (let i = 0; i < n; i++) {
+                // --- CAMBIO: Normalizar ecuaciones ---
+                let eqStr = normalizeEquation(document.getElementById(`nr-eq-${i}`).value);
+                // --- FIN CAMBIO ---
+
+                if (!eqStr) throw new Error("Todas las ecuaciones deben estar completas.");
+                equations.push(eqStr);
+                initial_values.push(parseFloat(document.getElementById(`nr-x0-${i}`).value));
+                f_nodes.push(math.parse(eqStr));
+            }
+
+            if (initial_values.some(isNaN)) throw new Error("Valores iniciales deben ser números.");
+            
+            // Pre-calcular Jacobiana (fórmulas)
+            for (let i = 0; i < n; i++) {
+                let j_row_nodes = [];
+                let j_row_formulas = [];
+                for (let j = 0; j < n; j++) {
+                    const deriv = math.derivative(f_nodes[i], variables[j]);
+                    j_row_nodes.push(deriv.compile());
+                    j_row_formulas.push(deriv.toString());
+                }
+                j_nodes.push(j_row_nodes);
+                j_formulas.push(j_row_formulas);
+            }
+
+            // Guardar estado
+            nr_state = {
+                n: n,
+                variables: variables,
+                current_values: initial_values,
+                iter_count: 0,
+                f_compiled: f_nodes.map(node => node.compile()),
+                j_compiled: j_nodes,
+                j_formulas_html: formulasToHTML(j_formulas)
+            };
+            
+            // Ocultar setup, mostrar resultados y correr primera iteración
+            document.getElementById('nr-setup').classList.add('hidden');
+            const resultsContainer = document.getElementById('nr-results');
+            resultsContainer.classList.remove('hidden');
+            resultsContainer.innerHTML = '<div id="nr-iteration-boxes"></div><button id="nr-next-iter-btn" class="btn">Siguiente Iteración</button>';
+            document.getElementById('nr-next-iter-btn').addEventListener('click', runNextNewtonIteration);
+            
+            runNextNewtonIteration(); // Correr la primera iteración
+
+        } catch (e) {
+            alert(`Error iniciando: ${e.message}`);
+        }
+    };
+
+    const runNextNewtonIteration = () => {
+        try {
+            const { n, variables, current_values, iter_count, f_compiled, j_compiled, j_formulas_html } = nr_state;
+            
+            nr_state_p2.iter_count++;
+            const old_values = [...current_values];
+            let scope = {};
+            variables.forEach((v, i) => scope[v] = old_values[i]);
+
+            // 1. Evaluar F(X_k)
+            const F_evaluated = f_compiled.map(f => f.evaluate(scope) * -1); // F(X_k)
+            
+            // 2. Evaluar J(X_k)
+            const J_evaluated = j_compiled.map(row => row.map(node => node.evaluate(scope)));
+            
+            // 3. Resolver J(X_k) * delta_X = -F(X_k)
+            const delta_X = math.lusolve(J_evaluated, F_evaluated);
+            
+            // 4. Calcular X_k+1 = X_k + delta_X
+            const delta_X_flat = delta_X.map(d => d[0]);
+            const new_values = math.add(old_values, delta_X_flat);
+            
+            // 5. Calcular Errores
+            const errors = new_values.map((val, i) => {
+                return val !== 0 ? Math.abs((val - old_values[i]) / val) : 0;
+            });
+
+            // 6. Actualizar estado
+            nr_state_p2.current_values = new_values;
+
+            // 7. Renderizar la caja de iteración
+            const iterBox = document.createElement('div');
+            iterBox.className = 'iteration-box';
+            
+            let html = `<h3>Iteración ${nr_state_p2.iter_count}</h3>`;
+            html += `<b>Valores Iniciales X<sub>k</sub>:</b> ${vectorToHTML(old_values, true)}`;
+            html += `<b>Matriz Jacobiana (J):</b> ${j_formulas_html}`;
+            html += `<b>J evaluada en X<sub>k</sub>:</b> ${matrixToHTML(J_evaluated)}`;
+            
+            try {
+                const J_inv = math.inv(J_evaluated);
+                html += `<b>Inversa de la Jacobiana (J⁻¹):</b> ${matrixToHTML(J_inv)}`;
+            } catch (e) {
+                html += `<b>Inversa de la Jacobiana (J⁻¹):</b> <span style="color:red;">Matriz singular, no se puede invertir.</span>`;
+            }
+
+            html += `<b>Vector -F(X<sub>k</sub>):</b> ${vectorToHTML(F_evaluated)}`;
+            html += `<b>Solución de J * ΔX = -F  (Valores de ΔX):</b> ${vectorToHTML(delta_X_flat, true)}`;
+            html += `<b>Nuevos Valores (X<sub>k+1</sub> = X<sub>k</sub> + ΔX):</b> <b style="color:#28a745;">${vectorToHTML(new_values, true)}</b>`;
+            html += `<b>Errores (Ea):</b> ${vectorToHTML(errors, true)}`;
+
+            iterBox.innerHTML = html;
+            document.getElementById('nr-iteration-boxes').appendChild(iterBox);
+
+            // Detener si el error es bajo
+            if (Math.max(...errors) < 0.000001) { // Tolerancia fija pequeña
+                document.getElementById('nr-next-iter-btn').textContent = "Convergencia alcanzada";
+                document.getElementById('nr-next-iter-btn').disabled = true;
+            }
+
+        } catch (e) {
+            alert(`Error en la iteración: ${e.message}`);
+            document.getElementById('nr-next-iter-btn').textContent = "Error";
+            document.getElementById('nr-next-iter-btn').disabled = true;
+        }
+    };
+
+    // --- ORDINARIO ---
+    
+    // Función genérica para mostrar "en construcción"
+    const showEnConstruccion = (titulo) => {
+        content.innerHTML = `
+            <h2>${titulo}</h2>
+            <div class="results-container" style="text-align: center; padding: 3rem;">
+                <h3 style="color: #6c757d; margin-bottom: 1rem;">🚧 En Construcción 🚧</h3>
+                <p style="font-size: 1.1em; color: #495057;">
+                    Este método está actualmente en desarrollo.<br>
+                    Próximamente estará disponible.
+                </p>
+            </div>
+        `;
+        addBackButtonP1();
+    };
+
+    const showSimpson = () => {
+        content.innerHTML = `
+            <h2>Integración Numérica - Método de Simpson 1/3</h2>
+            <div id="simpson-setup">
+                <div class="input-group" style="max-width: 300px; margin: auto;">
+                    <label for="simpson-mode">Selecciona el modo:</label>
+                    <select id="simpson-mode" class="input-group-select">
+                        <option value="single">Un solo intervalo</option>
+                        <option value="multiple">Múltiples intervalos</option>
+                    </select>
+                </div>
+                <div id="simpson-inputs-container"></div>
+            </div>
+            <div id="simpson-results" class="results-container hidden">
+                <div id="simpson-steps-results"></div>
+            </div>
+        `;
+        addBackButtonP1();
+        
+        const modeSelector = document.getElementById('simpson-mode');
+        modeSelector.addEventListener('change', () => createSimpsonInputs(modeSelector.value));
+        createSimpsonInputs(modeSelector.value); // Carga inicial
+    };
+
+    const createSimpsonInputs = (mode) => {
+        const container = document.getElementById('simpson-inputs-container');
+        
+        if (mode === 'single') {
+            container.innerHTML = `
+                <h4>Paso 1: Ingresa los datos para un solo intervalo</h4>
+                <p style="text-align:center; font-size: 0.9em;">Usar la regla de Simpson de 1/3 para aproximar la siguiente integral:</p>
+                <div class="input-group" style="max-width: 400px; margin: auto;">
+                    <label for="simpson-func">Función f(x):</label>
+                    <input type="text" id="simpson-func" placeholder="Ej: exp(x^2) o e^(x^2)">
+                </div>
+                <table class="input-table" style="max-width: 400px; margin: 1rem auto;">
+                    <thead><tr><th>Variable</th><th>Valor</th></tr></thead>
+                    <tbody>
+                        <tr><td>a (límite inferior)</td><td><input type="number" id="simpson-a" placeholder="0" step="any"></td></tr>
+                        <tr><td>b (límite superior)</td><td><input type="number" id="simpson-b" placeholder="1" step="any"></td></tr>
+                    </tbody>
+                </table>
+                <p style="text-align:center; font-size: 0.85em; color: #6c757d;">x<sub>m</sub> se calculará automáticamente como el punto medio entre a y b</p>
+                <button class="btn" id="simpson-calculate" style="max-width: 300px; margin: 1.5rem auto;">Calcular</button>
+            `;
+        } else {
+            container.innerHTML = `
+                <h4>Paso 1: Ingresa los datos para múltiples intervalos</h4>
+                <p style="text-align:center; font-size: 0.9em;">Aproximar la siguiente integral, aplicando la regla de Simpson de 1/3 y subdividiendo en N intervalos:</p>
+                <div class="input-group" style="max-width: 400px; margin: auto;">
+                    <label for="simpson-func">Función f(x):</label>
+                    <input type="text" id="simpson-func" placeholder="Ej: exp(x^2) o e^(x^2)">
+                </div>
+                <table class="input-table" style="max-width: 400px; margin: 1rem auto;">
+                    <thead><tr><th>Variable</th><th>Valor</th></tr></thead>
+                    <tbody>
+                        <tr><td>a (límite inferior)</td><td><input type="number" id="simpson-a" placeholder="0" step="any"></td></tr>
+                        <tr><td>b (límite superior)</td><td><input type="number" id="simpson-b" placeholder="1" step="any"></td></tr>
+                        <tr><td>n (número de intervalos)</td><td><input type="number" id="simpson-n" placeholder="5" min="2" step="1"></td></tr>
+                    </tbody>
+                </table>
+                <button class="btn" id="simpson-calculate" style="max-width: 300px; margin: 1.5rem auto;">Calcular</button>
+            `;
+        }
+        
+        document.getElementById('simpson-calculate').addEventListener('click', () => calculateSimpson(mode));
+    };
+
+    const calculateSimpson = (mode) => {
+        try {
+            const funcStr = normalizeEquation(document.getElementById('simpson-func').value);
+            if (!funcStr) throw new Error("La función no puede estar vacía.");
+            
+            const a = parseFloat(document.getElementById('simpson-a').value);
+            const b = parseFloat(document.getElementById('simpson-b').value);
+            
+            if (isNaN(a) || isNaN(b)) throw new Error("Los límites a y b deben ser números válidos.");
+            if (a >= b) throw new Error("El límite inferior (a) debe ser menor que el límite superior (b).");
+            
+            const funcNode = math.parse(funcStr);
+            const func = funcNode.compile();
+            
+            let resultsHTML = '';
+            
+            if (mode === 'single') {
+                // SIMPSON 1/3 - Un solo intervalo
+                const xm = (a + b) / 2; // Punto medio
+                const fa = func.evaluate({ x: a });
+                const fxm = func.evaluate({ x: xm });
+                const fb = func.evaluate({ x: b });
+                
+                const h = b - a;
+                const result = (h / 6) * (fa + 4 * fxm + fb);
+                
+                resultsHTML = '<h4>Paso 1: Te dan una integral definida</h4>';
+                resultsHTML += '<div class="equation" style="text-align: center; font-size: 1.2em;">';
+                resultsHTML += `∫<sub>${a}</sub><sup>${b}</sup> ${funcNode.toString({implicit: 'hide'})} dx`;
+                resultsHTML += '</div>';
+                
+                resultsHTML += '<table class="results-table" style="max-width: 400px; margin: 1rem auto;">';
+                resultsHTML += '<tr><th>Variable</th><th>Valor</th></tr>';
+                resultsHTML += `<tr><td>a</td><td>${a}</td></tr>`;
+                resultsHTML += `<tr><td>b</td><td>${b}</td></tr>`;
+                resultsHTML += `<tr><td>x<sub>m</sub> (punto medio)</td><td>${xm}</td></tr>`;
+                resultsHTML += `<tr><td>f(x)</td><td>${funcNode.toString({implicit: 'hide'})}</td></tr>`;
+                resultsHTML += '</table>';
+                
+                resultsHTML += '<h4>Paso 2: Utilizar la fórmula</h4>';
+                resultsHTML += '<div class="equation" style="text-align: center; font-size: 1.1em;">';
+                resultsHTML += '∫<sub>a</sub><sup>b</sup> f(x)dx ≈ (b - a) × [f(a) + 4f(x<sub>m</sub>) + f(b)] / 6';
+                resultsHTML += '</div>';
+                
+                resultsHTML += '<h4>Evaluación de la función:</h4>';
+                resultsHTML += '<table class="results-table" style="max-width: 500px; margin: 1rem auto;">';
+                resultsHTML += '<tr><th>Punto</th><th>x</th><th>f(x)</th></tr>';
+                resultsHTML += `<tr><td>f(a)</td><td>${a}</td><td>${fa.toFixed(6)}</td></tr>`;
+                resultsHTML += `<tr><td>f(x<sub>m</sub>)</td><td>${xm}</td><td>${fxm.toFixed(6)}</td></tr>`;
+                resultsHTML += `<tr><td>f(b)</td><td>${b}</td><td>${fb.toFixed(6)}</td></tr>`;
+                resultsHTML += '</table>';
+                
+                resultsHTML += '<h4>Respuesta del ejercicio:</h4>';
+                resultsHTML += '<div class="equation" style="text-align: center; font-size: 1em;">';
+                resultsHTML += `= (${b} - ${a}) × [${fa.toFixed(6)} + 4(${fxm.toFixed(6)}) + ${fb.toFixed(6)}] / 6`;
+                resultsHTML += '</div>';
+                
+                resultsHTML += '<div class="equation" style="text-align: center; font-size: 1em; margin-top: 0.5rem;">';
+                resultsHTML += `= ${h.toFixed(6)} × [${fa.toFixed(6)} + ${(4 * fxm).toFixed(6)} + ${fb.toFixed(6)}] / 6`;
+                resultsHTML += '</div>';
+                
+                resultsHTML += '<div class="equation" style="text-align: center; font-size: 1em; margin-top: 0.5rem;">';
+                resultsHTML += `= ${h.toFixed(6)} × ${(fa + 4 * fxm + fb).toFixed(6)} / 6`;
+                resultsHTML += '</div>';
+                
+                resultsHTML += '<div class="equation" style="text-align: center; font-size: 1em; margin-top: 0.5rem;">';
+                resultsHTML += `= ${result.toFixed(6)}`;
+                resultsHTML += '</div>';
+                
+                resultsHTML += `<h4 style="text-align: center; color: #28a745; font-size: 1.5em; margin-top: 2rem;">Resultado: ${result.toFixed(6)}</h4>`;
+                
+            } else {
+                // SIMPSON 1/3 - Múltiples intervalos
+                const n = parseInt(document.getElementById('simpson-n').value);
+                if (isNaN(n) || n < 2) throw new Error("El número de intervalos (n) debe ser un entero mayor o igual a 2.");
+                
+                resultsHTML = '<h4>Paso 1: Te dicen que dividas en N intervalos</h4>';
+                resultsHTML += '<div class="equation" style="text-align: center; font-size: 1.2em;">';
+                resultsHTML += `∫<sub>${a}</sub><sup>${b}</sup> ${funcNode.toString({implicit: 'hide'})} dx`;
+                resultsHTML += '</div>';
+                
+                resultsHTML += '<table class="results-table" style="max-width: 400px; margin: 1rem auto;">';
+                resultsHTML += '<tr><th>Variable</th><th>Valor</th></tr>';
+                resultsHTML += `<tr><td>a</td><td>${a}</td></tr>`;
+                resultsHTML += `<tr><td>b</td><td>${b}</td></tr>`;
+                resultsHTML += `<tr><td>n</td><td>${n}</td></tr>`;
+                resultsHTML += `<tr><td>f(x)</td><td>${funcNode.toString({implicit: 'hide'})}</td></tr>`;
+                resultsHTML += '</table>';
+                
+                // Paso 2: Calcular h = (b - a) / n
+                const h = (b - a) / n;
+                resultsHTML += '<h4>Paso 2: Hacer la siguiente división (b - a) / n</h4>';
+                resultsHTML += `<div class="equation" style="text-align: center;">h = (${b} - ${a}) / ${n} = ${h.toFixed(6)}</div>`;
+                resultsHTML += '<p style="text-align: center; color: #6c757d;">Este es el valor de cuanto se debe ir sumando.</p>';
+                
+                // Paso 3: Calcular puntos de los intervalos
+                const points = [];
+                for (let i = 0; i <= n; i++) {
+                    points.push(a + i * h);
+                }
+                
+                resultsHTML += '<h4>Paso 3: Empezando en el punto A y terminando en punto B, aumentando el número anterior, obtendremos los intervalos</h4>';
+                resultsHTML += '<p style="text-align: center;">P = { ';
+                resultsHTML += points.map((p, i) => {
+                    if (i === 0) return `<strong style="color: #dc3545;">${p}</strong>`;
+                    if (i === points.length - 1) return `<strong style="color: #fd7e14;">${p}</strong>`;
+                    return `<span style="color: #28a745;">${p}</span>`;
+                }).join(', ');
+                resultsHTML += ' }</p>';
+                
+                resultsHTML += '<table class="results-table" style="max-width: 500px; margin: 1rem auto; font-size: 0.9em;">';
+                resultsHTML += '<tr><th>i</th><th>x<sub>i</sub></th><th>f(x<sub>i</sub>)</th></tr>';
+                const f_points = points.map(x => func.evaluate({ x }));
+                points.forEach((p, i) => {
+                    const highlight = i === 0 ? 'style="background-color: #f8d7da;"' : (i === points.length - 1 ? 'style="background-color: #fff3cd;"' : '');
+                    resultsHTML += `<tr ${highlight}><td>${i}</td><td>${p.toFixed(6)}</td><td>${f_points[i].toFixed(6)}</td></tr>`;
+                });
+                resultsHTML += '</table>';
+                
+                // Paso 4: Calcular puntos medios
+                const midpoints = [];
+                for (let i = 0; i < n; i++) {
+                    midpoints.push((points[i] + points[i + 1]) / 2);
+                }
+                
+                resultsHTML += '<h4>Paso 4: Obtenemos el punto medio de cada intervalo así: (num actual - num anterior) / 2</h4>';
+                resultsHTML += '<p style="text-align: center;">P<sub>m</sub> = { ';
+                resultsHTML += midpoints.map(m => `<span style="color: #ffc107;">${m.toFixed(6)}</span>`).join(', ');
+                resultsHTML += ' }</p>';
+                
+                resultsHTML += '<table class="results-table" style="max-width: 500px; margin: 1rem auto; font-size: 0.9em;">';
+                resultsHTML += '<tr><th>i</th><th>x<sub>mi</sub></th><th>f(x<sub>mi</sub>)</th></tr>';
+                const f_midpoints = midpoints.map(x => func.evaluate({ x }));
+                midpoints.forEach((m, i) => {
+                    resultsHTML += `<tr style="background-color: #fff3cd;"><td>${i + 1}</td><td>${m.toFixed(6)}</td><td>${f_midpoints[i].toFixed(6)}</td></tr>`;
+                });
+                resultsHTML += '</table>';
+                
+                // Paso 5: Aplicar fórmula
+                const f0 = f_points[0];
+                const fn = f_points[n];
+                const sum_midpoints = f_midpoints.reduce((sum, val) => sum + val, 0);
+                const sum_internal = f_points.slice(1, n).reduce((sum, val) => sum + val, 0);
+                
+                const result = ((b - a) / (6 * n)) * (f0 + 4 * sum_midpoints + 2 * sum_internal + fn);
+                
+                resultsHTML += '<h4>Paso 5: Utilizar la fórmula</h4>';
+                resultsHTML += '<div class="equation" style="text-align: center; font-size: 1.1em;">';
+                resultsHTML += '∫<sub>a</sub><sup>b</sup> f(x)dx ≈ (b - a) / (6n) × [f(x<sub>0</sub>) + 4Σ<sub>i=1</sub><sup>n</sup>f(x<sub>mi</sub>) + 2Σ<sub>i=1</sub><sup>n-1</sup>f(x<sub>i</sub>) + f(x<sub>n</sub>)]';
+                resultsHTML += '</div>';
+                
+                resultsHTML += '<h4>Desarrollo del cálculo:</h4>';
+                resultsHTML += '<div class="equation" style="text-align: left; font-size: 0.95em; padding: 1rem;">';
+                resultsHTML += `= (${b} - ${a}) / (6 × ${n}) × [f(${points[0]}) + 4(Σf(x<sub>mi</sub>)) + 2(Σf(x<sub>i</sub>)) + f(${points[n]})]<br><br>`;
+                resultsHTML += `= ${((b - a) / (6 * n)).toFixed(6)} × [${f0.toFixed(6)} + 4(${sum_midpoints.toFixed(6)}) + 2(${sum_internal.toFixed(6)}) + ${fn.toFixed(6)}]<br><br>`;
+                resultsHTML += `= ${((b - a) / (6 * n)).toFixed(6)} × [${f0.toFixed(6)} + ${(4 * sum_midpoints).toFixed(6)} + ${(2 * sum_internal).toFixed(6)} + ${fn.toFixed(6)}]<br><br>`;
+                const totalSum = f0 + 4 * sum_midpoints + 2 * sum_internal + fn;
+                resultsHTML += `= ${((b - a) / (6 * n)).toFixed(6)} × ${totalSum.toFixed(6)}<br><br>`;
+                resultsHTML += `= ${result.toFixed(6)}`;
+                resultsHTML += '</div>';
+                
+                resultsHTML += `<h4 style="text-align: center; color: #28a745; font-size: 1.5em; margin-top: 2rem;">Resultado: ${result.toFixed(6)}</h4>`;
+            }
+            
+            document.getElementById('simpson-steps-results').innerHTML = resultsHTML;
+            document.getElementById('simpson-results').classList.remove('hidden');
+            
+        } catch (e) {
+            alert(`Error: ${e.message}`);
+        }
+    };
+
+    const showTrapecio = () => {
+        content.innerHTML = `
+            <h2>Integración Numérica - Método del Trapecio</h2>
+            <div id="trapecio-setup">
+                <div class="input-group" style="max-width: 300px; margin: auto;">
+                    <label for="trapecio-mode">Selecciona el modo:</label>
+                    <select id="trapecio-mode" class="input-group-select">
+                        <option value="single">Un solo intervalo (n = 1)</option>
+                        <option value="multiple">Múltiples intervalos</option>
+                    </select>
+                </div>
+                <div id="trapecio-inputs-container"></div>
+            </div>
+            <div id="trapecio-results" class="results-container hidden">
+                <div id="trapecio-steps-results"></div>
+            </div>
+        `;
+        addBackButtonP1();
+        
+        const modeSelector = document.getElementById('trapecio-mode');
+        modeSelector.addEventListener('change', () => createTrapecioInputs(modeSelector.value));
+        createTrapecioInputs(modeSelector.value); // Carga inicial
+    };
+
+    const createTrapecioInputs = (mode) => {
+        const container = document.getElementById('trapecio-inputs-container');
+        
+        if (mode === 'single') {
+            container.innerHTML = `
+                <h4>Paso 1: Ingresa los datos para un solo intervalo (n = 1)</h4>
+                <p style="text-align:center; font-size: 0.9em;">Corresponde al caso donde n = 1</p>
+                <div class="input-group" style="max-width: 400px; margin: auto;">
+                    <label for="trapecio-func">Función f(x):</label>
+                    <input type="text" id="trapecio-func" placeholder="Ej: exp(x^2) o e^(x^2)">
+                </div>
+                <table class="input-table" style="max-width: 400px; margin: 1rem auto;">
+                    <thead><tr><th>Variable</th><th>Valor</th></tr></thead>
+                    <tbody>
+                        <tr><td>a (límite inferior)</td><td><input type="number" id="trapecio-a" placeholder="0" step="any"></td></tr>
+                        <tr><td>b (límite superior)</td><td><input type="number" id="trapecio-b" placeholder="1" step="any"></td></tr>
+                    </tbody>
+                </table>
+                <button class="btn" id="trapecio-calculate" style="max-width: 300px; margin: 1.5rem auto;">Calcular</button>
+            `;
+        } else {
+            container.innerHTML = `
+                <h4>Paso 1: Ingresa los datos para múltiples intervalos</h4>
+                <div class="input-group" style="max-width: 400px; margin: auto;">
+                    <label for="trapecio-func">Función f(x):</label>
+                    <input type="text" id="trapecio-func" placeholder="Ej: exp(x^2) o e^(x^2)">
+                </div>
+                <table class="input-table" style="max-width: 400px; margin: 1rem auto;">
+                    <thead><tr><th>Variable</th><th>Valor</th></tr></thead>
+                    <tbody>
+                        <tr><td>a (límite inferior)</td><td><input type="number" id="trapecio-a" placeholder="0" step="any"></td></tr>
+                        <tr><td>b (límite superior)</td><td><input type="number" id="trapecio-b" placeholder="1" step="any"></td></tr>
+                        <tr><td>n (número de intervalos)</td><td><input type="number" id="trapecio-n" placeholder="6" min="1" step="1"></td></tr>
+                    </tbody>
+                </table>
+                <button class="btn" id="trapecio-calculate" style="max-width: 300px; margin: 1.5rem auto;">Calcular</button>
+            `;
+        }
+        
+        document.getElementById('trapecio-calculate').addEventListener('click', () => calculateTrapecio(mode));
+    };
+
+    const calculateTrapecio = (mode) => {
+        try {
+            const funcStr = normalizeEquation(document.getElementById('trapecio-func').value);
+            if (!funcStr) throw new Error("La función no puede estar vacía.");
+            
+            const a = parseFloat(document.getElementById('trapecio-a').value);
+            const b = parseFloat(document.getElementById('trapecio-b').value);
+            
+            if (isNaN(a) || isNaN(b)) throw new Error("Los límites a y b deben ser números válidos.");
+            if (a >= b) throw new Error("El límite inferior (a) debe ser menor que el límite superior (b).");
+            
+            const funcNode = math.parse(funcStr);
+            const func = funcNode.compile();
+            
+            let resultsHTML = '';
+            
+            if (mode === 'single') {
+                // MÉTODO DEL TRAPECIO - Un solo intervalo (n = 1)
+                const fa = func.evaluate({ x: a });
+                const fb = func.evaluate({ x: b });
+                
+                const h = b - a;
+                const result = h * ((fa + fb) / 2);
+                
+                resultsHTML = '<h4>Paso 1: Te dan una integral definida</h4>';
+                resultsHTML += '<div class="equation" style="text-align: center; font-size: 1.2em;">';
+                resultsHTML += `∫<sub>${a}</sub><sup>${b}</sup> ${funcNode.toString({implicit: 'hide'})} dx`;
+                resultsHTML += '</div>';
+                
+                resultsHTML += '<p style="text-align: center; color: #6c757d;">Corresponde al caso donde n = 1, es decir:</p>';
+                
+                resultsHTML += '<h4>Paso 2: Utilizar la fórmula</h4>';
+                resultsHTML += '<div class="equation" style="text-align: center; font-size: 1.1em;">';
+                resultsHTML += '∫<sub>a</sub><sup>b</sup> f(x)dx ≈ (b - a) [ (f(a) + f(b)) / 2 ]';
+                resultsHTML += '</div>';
+                
+                resultsHTML += '<h4>Evaluación de la función:</h4>';
+                resultsHTML += '<table class="results-table" style="max-width: 500px; margin: 1rem auto;">';
+                resultsHTML += '<tr><th>Punto</th><th>x</th><th>f(x)</th></tr>';
+                resultsHTML += `<tr><td>f(a)</td><td>${a}</td><td>${fa.toFixed(6)}</td></tr>`;
+                resultsHTML += `<tr><td>f(b)</td><td>${b}</td><td>${fb.toFixed(6)}</td></tr>`;
+                resultsHTML += '</table>';
+                
+                resultsHTML += '<h4>Desarrollo del cálculo:</h4>';
+                resultsHTML += '<div class="equation" style="text-align: center; font-size: 1em;">';
+                resultsHTML += `= (${b} - ${a}) [ (${fa.toFixed(6)} + ${fb.toFixed(6)}) / 2 ]`;
+                resultsHTML += '</div>';
+                
+                resultsHTML += '<div class="equation" style="text-align: center; font-size: 1em; margin-top: 0.5rem;">';
+                resultsHTML += `= ${h.toFixed(6)} [ ${(fa + fb).toFixed(6)} / 2 ]`;
+                resultsHTML += '</div>';
+                
+                resultsHTML += '<div class="equation" style="text-align: center; font-size: 1em; margin-top: 0.5rem;">';
+                resultsHTML += `= ${h.toFixed(6)} [ ${((fa + fb) / 2).toFixed(6)} ]`;
+                resultsHTML += '</div>';
+                
+                resultsHTML += '<div class="equation" style="text-align: center; font-size: 1em; margin-top: 0.5rem;">';
+                resultsHTML += `= ${result.toFixed(6)}`;
+                resultsHTML += '</div>';
+                
+                resultsHTML += `<h4 style="text-align: center; color: #28a745; font-size: 1.5em; margin-top: 2rem;">Resultado: ${result.toFixed(6)}</h4>`;
+                
+            } else {
+                // MÉTODO DEL TRAPECIO - Múltiples intervalos
+                const n = parseInt(document.getElementById('trapecio-n').value);
+                if (isNaN(n) || n < 1) throw new Error("El número de intervalos (n) debe ser un entero mayor o igual a 1.");
+                
+                resultsHTML = '<h4>Paso 1: Te dicen que dividas en N intervalos</h4>';
+                resultsHTML += '<div class="equation" style="text-align: center; font-size: 1.2em;">';
+                resultsHTML += `∫<sub>${a}</sub><sup>${b}</sup> ${funcNode.toString({implicit: 'hide'})} dx`;
+                resultsHTML += '</div>';
+                
+                resultsHTML += '<table class="results-table" style="max-width: 400px; margin: 1rem auto;">';
+                resultsHTML += '<tr><th>Variable</th><th>Valor</th></tr>';
+                resultsHTML += `<tr><td>a</td><td>${a}</td></tr>`;
+                resultsHTML += `<tr><td>b</td><td>${b}</td></tr>`;
+                resultsHTML += `<tr><td>n</td><td>${n}</td></tr>`;
+                resultsHTML += `<tr><td>f(x)</td><td>${funcNode.toString({implicit: 'hide'})}</td></tr>`;
+                resultsHTML += '</table>';
+                
+                // Calcular h = (b - a) / n
+                const h = (b - a) / n;
+                resultsHTML += '<h4>Paso 2: Calcular h = (b - a) / n</h4>';
+                resultsHTML += `<div class="equation" style="text-align: center;">h = (${b} - ${a}) / ${n} = ${h.toFixed(6)}</div>`;
+                
+                // Calcular puntos de los intervalos
+                const points = [];
+                for (let i = 0; i <= n; i++) {
+                    points.push(a + i * h);
+                }
+                
+                resultsHTML += '<h4>Paso 3: Calcular los puntos de los intervalos</h4>';
+                resultsHTML += '<p style="text-align: center;">P = { ';
+                resultsHTML += points.map((p, i) => {
+                    if (i === 0) return `<strong style="color: #dc3545;">${p.toFixed(6)}</strong>`;
+                    if (i === points.length - 1) return `<strong style="color: #fd7e14;">${p.toFixed(6)}</strong>`;
+                    return `<span style="color: #28a745;">${p.toFixed(6)}</span>`;
+                }).join(', ');
+                resultsHTML += ' }</p>';
+                
+                resultsHTML += '<table class="results-table" style="max-width: 500px; margin: 1rem auto; font-size: 0.9em;">';
+                resultsHTML += '<tr><th>i</th><th>x<sub>i</sub></th><th>f(x<sub>i</sub>)</th></tr>';
+                const f_points = points.map(x => func.evaluate({ x }));
+                points.forEach((p, i) => {
+                    const highlight = i === 0 ? 'style="background-color: #f8d7da;"' : (i === points.length - 1 ? 'style="background-color: #fff3cd;"' : '');
+                    resultsHTML += `<tr ${highlight}><td>${i}</td><td>${p.toFixed(6)}</td><td>${f_points[i].toFixed(6)}</td></tr>`;
+                });
+                resultsHTML += '</table>';
+                
+                // Aplicar fórmula del trapecio para múltiples intervalos
+                const f0 = f_points[0];
+                const fn = f_points[n];
+                const sum_internal = f_points.slice(1, n).reduce((sum, val) => sum + val, 0);
+                
+                const result = ((b - a) / (2 * n)) * (f0 + 2 * sum_internal + fn);
+                
+                resultsHTML += '<h4>Paso 4: Utilizar la fórmula</h4>';
+                resultsHTML += '<div class="equation" style="text-align: center; font-size: 1.1em;">';
+                resultsHTML += '∫<sub>a</sub><sup>b</sup> f(x)dx ≈ (b - a) / (2n) [f(x<sub>0</sub>) + 2Σ<sub>i=1</sub><sup>n-1</sup>f(x<sub>i</sub>) + f(x<sub>n</sub>)]';
+                resultsHTML += '</div>';
+                
+                resultsHTML += '<h4>Desarrollo del cálculo:</h4>';
+                resultsHTML += '<div class="equation" style="text-align: left; font-size: 0.95em; padding: 1rem;">';
+                resultsHTML += `= (${b} - ${a}) / (2 × ${n}) [f(${points[0]}) + 2(Σf(x<sub>i</sub>)) + f(${points[n]})]<br><br>`;
+                resultsHTML += `= ${((b - a) / (2 * n)).toFixed(6)} [${f0.toFixed(6)} + 2(${sum_internal.toFixed(6)}) + ${fn.toFixed(6)}]<br><br>`;
+                resultsHTML += `= ${((b - a) / (2 * n)).toFixed(6)} [${f0.toFixed(6)} + ${(2 * sum_internal).toFixed(6)} + ${fn.toFixed(6)}]<br><br>`;
+                const totalSum = f0 + 2 * sum_internal + fn;
+                resultsHTML += `= ${((b - a) / (2 * n)).toFixed(6)} [${totalSum.toFixed(6)}]<br><br>`;
+                resultsHTML += `= ${result.toFixed(6)}`;
+                resultsHTML += '</div>';
+                
+                resultsHTML += `<h4 style="text-align: center; color: #28a745; font-size: 1.5em; margin-top: 2rem;">Resultado: ${result.toFixed(6)}</h4>`;
+            }
+            
+            document.getElementById('trapecio-steps-results').innerHTML = resultsHTML;
+            document.getElementById('trapecio-results').classList.remove('hidden');
+            
+        } catch (e) {
+            alert(`Error: ${e.message}`);
+        }
+    };
+
+    const showDeterminante = () => {
+        content.innerHTML = `
+            <h2>Sistemas de Ecuaciones Lineales con Determinante</h2>
+            <div id="det-setup">
+                <div class="input-group" style="max-width: 300px; margin: auto;">
+                    <label for="det-n-vars">¿Cuántas variables tiene el sistema?</label>
+                    <select id="det-n-vars" class="input-group-select">
+                        <option value="2" selected>2 (x, y)</option>
+                        <option value="3">3 (x, y, z)</option>
+                        <option value="4">4 (x, y, z, w)</option>
+                    </select>
+                </div>
+                <div id="det-inputs-container"></div>
+            </div>
+            <div id="det-results" class="results-container hidden">
+                <div id="det-steps-results"></div>
+            </div>
+        `;
+        addBackButtonP1();
+        
+        const nVarsSelector = document.getElementById('det-n-vars');
+        nVarsSelector.addEventListener('change', () => createDeterminanteInputs(nVarsSelector.value));
+        createDeterminanteInputs(nVarsSelector.value); // Carga inicial
+    };
+
+    const createDeterminanteInputs = (nStr) => {
+        const n = parseInt(nStr);
+        const container = document.getElementById('det-inputs-container');
+        const varNames = ['x', 'y', 'z', 'w'].slice(0, n);
+        
+        let equationsHTML = '<h4>Paso 1: Ingresa las ecuaciones lineales</h4>';
+        equationsHTML += '<p style="text-align:center; font-size: 0.9em;">Ingresa los coeficientes de cada variable y el término independiente.</p>';
+        equationsHTML += '<table class="input-table" style="max-width: 600px; margin: 1rem auto;">';
+        equationsHTML += '<thead><tr><th>Ecuación</th>';
+        varNames.forEach(v => equationsHTML += `<th>Coef. ${v}</th>`);
+        equationsHTML += '<th>Término Indep.</th></tr></thead><tbody>';
+        
+        for (let i = 0; i < n; i++) {
+            equationsHTML += `<tr><td><strong>Ecuación ${i+1}</strong></td>`;
+            for (let j = 0; j < n; j++) {
+                equationsHTML += `<td><input type="number" id="det-coef-${i}-${j}" placeholder="0" step="any" style="width: 80px;"></td>`;
+            }
+            equationsHTML += `<td><input type="number" id="det-b-${i}" placeholder="0" step="any" style="width: 80px;"></td></tr>`;
+        }
+        equationsHTML += '</tbody></table>';
+        equationsHTML += '<button class="btn" id="det-calculate" style="max-width: 300px; margin: 1.5rem auto;">Calcular Solución</button>';
+        
+        container.innerHTML = equationsHTML;
+        document.getElementById('det-calculate').addEventListener('click', calculateDeterminante);
+    };
+
+    const calculateDeterminante = () => {
+        try {
+            const n = parseInt(document.getElementById('det-n-vars').value);
+            const varNames = ['x', 'y', 'z', 'w'].slice(0, n);
+            
+            // 1. Construir matriz de coeficientes A
+            const A = [];
+            for (let i = 0; i < n; i++) {
+                const row = [];
+                for (let j = 0; j < n; j++) {
+                    const val = parseFloat(document.getElementById(`det-coef-${i}-${j}`).value);
+                    if (isNaN(val)) throw new Error(`Falta el coeficiente de ${varNames[j]} en la ecuación ${i+1}.`);
+                    row.push(val);
+                }
+                A.push(row);
+            }
+            
+            // 2. Construir vector independiente b
+            const b = [];
+            for (let i = 0; i < n; i++) {
+                const val = parseFloat(document.getElementById(`det-b-${i}`).value);
+                if (isNaN(val)) throw new Error(`Falta el término independiente en la ecuación ${i+1}.`);
+                b.push(val);
+            }
+            
+            // 3. Calcular determinante
+            const A_matrix = math.matrix(A);
+            const det = math.det(A_matrix);
+            
+            if (Math.abs(det) < 1e-10) {
+                throw new Error('El determinante es cero. El sistema no tiene solución única (puede tener infinitas soluciones o ninguna).');
+            }
+            
+            // 4. Calcular matriz inversa
+            const A_inv = math.inv(A_matrix);
+            const A_inv_array = A_inv.toArray();
+            
+            // 5. Calcular solución: X = A⁻¹ * b
+            const b_matrix = math.matrix(b.map(v => [v]));
+            const solution_matrix = math.multiply(A_inv, b_matrix);
+            const solution = solution_matrix.toArray().map(row => row[0]);
+            
+            // Mostrar resultados
+            let resultsHTML = '<h4>Paso 2: Matriz de Coeficientes (A)</h4>';
+            resultsHTML += '<div class="matrix-display">';
+            resultsHTML += '<table class="results-table" style="max-width: 400px;">';
+            resultsHTML += '<thead><tr><th></th>';
+            varNames.forEach(v => resultsHTML += `<th>${v}</th>`);
+            resultsHTML += '</tr></thead><tbody>';
+            for (let i = 0; i < n; i++) {
+                resultsHTML += `<tr><td><strong>Ec. ${i+1}</strong></td>`;
+                for (let j = 0; j < n; j++) {
+                    resultsHTML += `<td>${A[i][j]}</td>`;
+                }
+                resultsHTML += '</tr>';
+            }
+            resultsHTML += '</tbody></table></div>';
+            
+            resultsHTML += '<h4>Paso 3: Vector Independiente (b)</h4>';
+            resultsHTML += '<div class="matrix-display">';
+            resultsHTML += '<table class="results-table" style="max-width: 200px;">';
+            resultsHTML += '<thead><tr><th></th><th>b</th></tr></thead><tbody>';
+            for (let i = 0; i < n; i++) {
+                resultsHTML += `<tr><td><strong>Ec. ${i+1}</strong></td><td>${b[i]}</td></tr>`;
+            }
+            resultsHTML += '</tbody></table></div>';
+            
+            resultsHTML += '<h4>Paso 4: Determinante de A</h4>';
+            resultsHTML += `<div class="equation" style="text-align: center; font-size: 1.3em;">det(A) = ${det.toFixed(6)}</div>`;
+            
+            if (Math.abs(det) < 1e-6) {
+                resultsHTML += '<p style="color: #dc3545; text-align: center;"><strong>⚠️ Advertencia: El determinante es muy cercano a cero.</strong></p>';
+            }
+            
+            resultsHTML += '<h4>Paso 5: Matriz Inversa (A⁻¹)</h4>';
+            resultsHTML += '<div class="matrix-display">';
+            resultsHTML += '<table class="results-table" style="max-width: 400px;">';
+            resultsHTML += '<thead><tr><th></th>';
+            varNames.forEach((v, i) => resultsHTML += `<th>Col. ${i+1}</th>`);
+            resultsHTML += '</tr></thead><tbody>';
+            for (let i = 0; i < n; i++) {
+                resultsHTML += `<tr><td><strong>Fila ${i+1}</strong></td>`;
+                for (let j = 0; j < n; j++) {
+                    resultsHTML += `<td>${A_inv_array[i][j].toFixed(6)}</td>`;
+                }
+                resultsHTML += '</tr>';
+            }
+            resultsHTML += '</tbody></table></div>';
+            
+            resultsHTML += '<h4>Paso 6: Solución (X = A⁻¹ × b)</h4>';
+            resultsHTML += '<div class="matrix-display">';
+            resultsHTML += '<table class="results-table" style="max-width: 200px;">';
+            resultsHTML += '<thead><tr><th>Variable</th><th>Valor</th></tr></thead><tbody>';
+            for (let i = 0; i < n; i++) {
+                resultsHTML += `<tr><td><strong>${varNames[i]}</strong></td><td style="color: #28a745; font-weight: bold; font-size: 1.1em;">${solution[i].toFixed(6)}</td></tr>`;
+            }
+            resultsHTML += '</tbody></table></div>';
+            
+            // Verificación
+            resultsHTML += '<h4>Verificación</h4>';
+            resultsHTML += '<p style="text-align: center;">Sustituyendo los valores en las ecuaciones originales:</p>';
+            for (let i = 0; i < n; i++) {
+                let eqStr = '';
+                let result = 0;
+                for (let j = 0; j < n; j++) {
+                    if (j > 0 && A[i][j] >= 0) eqStr += ' + ';
+                    else if (A[i][j] < 0) eqStr += ' - ';
+                    eqStr += `${Math.abs(A[i][j])}(${solution[j].toFixed(4)})`;
+                    result += A[i][j] * solution[j];
+                }
+                const diff = Math.abs(result - b[i]);
+                const checkIcon = diff < 1e-6 ? '✅' : '❌';
+                resultsHTML += `<div class="equation">Ec. ${i+1}: ${eqStr} = ${result.toFixed(6)} ${checkIcon} (esperado: ${b[i]})</div>`;
+            }
+            
+            document.getElementById('det-steps-results').innerHTML = resultsHTML;
+            document.getElementById('det-results').classList.remove('hidden');
+            
+        } catch (e) {
+            alert(`Error: ${e.message}`);
+        }
+    };
+
+    // Iniciar la aplicación
+    console.log('Iniciando aplicación, llamando showMainMenu');
+    try {
+        showMainMenu();
+        console.log('showMainMenu ejecutado correctamente');
+    } catch (e) {
+        console.error('Error al ejecutar showMainMenu:', e);
+    }
+});
+</script>
+</body>
+</html>

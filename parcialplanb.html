@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Métodos Numéricos - 2º Parcial</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.min.js"></script>
+
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5; color: #1c1e21; margin: 0; display: flex;
+            justify-content: center; align-items: flex-start; min-height: 100vh; padding: 20px; box-sizing: border-box;
+        }
+        .container {
+            width: 100%; max-width: 900px; background-color: #ffffff; border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); padding: 2rem; box-sizing: border-box;
+        }
+        header { text-align: center; border-bottom: 1px solid #e0e0e0; padding-bottom: 1rem; margin-bottom: 1.5rem; }
+        h1, h2, h3, h4 { color: #0052cc; }
+        h2, h3 { text-align: center; margin-bottom: 1.5rem; }
+        h4 { margin-top: 1.5rem; border-bottom: 2px solid #007bff; padding-bottom: 0.5rem; }
+        
+        /* Botones */
+        .btn {
+            display: block; width: 100%; padding: 12px 20px; margin: 10px 0; font-size: 16px; font-weight: 600;
+            color: #ffffff; background-color: #007bff; border: none; border-radius: 8px; cursor: pointer;
+            text-align: center; text-decoration: none; transition: background-color 0.2s ease;
+        }
+        .btn:hover { background-color: #0056b3; }
+        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary:hover { background-color: #5a6268; }
+
+        /* Controles de formulario */
+        .input-group { display: flex; flex-direction: column; margin-bottom: 1rem; }
+        .input-group label { margin-bottom: 5px; font-weight: 500; color: #495057; }
+        .input-group input, .input-group select {
+            padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 16px; width: 100%; box-sizing: border-box;
+        }
+        .input-row { display: flex; gap: 10px; justify-content: center; }
+        .input-row input { width: 100px; text-align: center;}
+
+        /* Contenedores de resultados */
+        .results-container { 
+            margin-top: 2rem; padding: 1.5rem; background-color: #f8f9fa; 
+            border: 1px solid #e9ecef; border-radius: 8px; 
+        }
+        .equation-input {
+            display: grid;
+            grid-template-columns: auto 1fr auto 1fr;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #eee;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .equation-input label { font-size: 1.1em; font-weight: bold; }
+        .equation-input input { flex: 1; }
+
+        .results-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9em; table-layout: fixed; }
+        .results-table th, .results-table td { 
+            border: 1px solid #dee2e6; padding: 10px 8px; 
+            text-align: center; word-wrap: break-word;
+        }
+        .results-table th { background-color: #e9ecef; font-weight: 600; }
+        .highlight-row { background-color: #d4edda; font-weight: bold; }
+        .hidden { display: none; }
+        .convergence-check {
+            padding: 15px; background: #eef; border-radius: 8px;
+            font-family: "Courier New", monospace; font-size: 1.1em;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+        .convergence-check b { color: #dc3545; }
+
+        /* Estilos para Newton-Raphson */
+        .iteration-box {
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            background: #fff;
+            position: relative;
+        }
+        .iteration-box h3 {
+            position: absolute; top: -15px; left: 15px;
+            background-color: #fff;
+            color: #007bff;
+            padding: 0 10px;
+            margin: 0;
+            text-align: left;
+        }
+        .iteration-box b {
+            display: inline-block;
+            margin-top: 10px;
+            color: #343a40;
+        }
+        .iteration-box table {
+            width: auto; margin: 5px 0 10px 0; border: 1px solid #ccc;
+            border-collapse: collapse;
+        }
+        .iteration-box td {
+            padding: 5px 10px; border: 1px solid #ccc;
+            text-align: center; font-family: "Courier New", monospace;
+        }
+        .equation {
+            font-family: "Courier New", Courier, monospace; background-color: #e9ecef; 
+            padding: 10px; border-radius: 4px; margin: 5px 0 10px 0;
+            font-size: 1.1em; overflow-x: auto;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Métodos Numéricos</h1>
+            <h2>Segundo Parcial</h2>
+        </header>
+        <main id="content"></main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const content = document.getElementById('content');
+    
+    // Estado global para el método de Newton
+    let nr_state = {};
+
+    // --- NAVEGACIÓN Y UTILIDADES ---
+    const switchView = (viewFunction) => {
+        content.innerHTML = '';
+        nr_state = {}; // Reiniciar el estado de Newton al cambiar de vista
+        viewFunction();
+    };
+
+    const addBackButton = () => {
+        const backButton = document.createElement('button');
+        backButton.className = 'btn btn-secondary';
+        backButton.textContent = 'Regresar al Menú';
+        backButton.addEventListener('click', () => switchView(showMainMenu));
+        content.appendChild(backButton);
+    };
+
+    // Funciones para mostrar matrices y vectores en HTML
+    const matrixToHTML = (matrix) => {
+        let html = '<table>';
+        matrix.forEach(row => {
+            html += '<tr>' + row.map(cell => `<td>${cell.toFixed(6)}</td>`).join('') + '</tr>';
+        });
+        return html + '</table>';
+    };
+    const vectorToHTML = (vector, horizontal = false) => {
+        if (horizontal) {
+            return '<table><tr>' + vector.map(cell => `<td>${cell.toFixed(6)}</td>`).join('') + '</tr></table>';
+        }
+        let html = '<table>';
+        vector.forEach(cell => {
+            html += `<tr><td>${cell.toFixed(6)}</td></tr>`;
+        });
+        return html + '</table>';
+    };
+    const formulasToHTML = (matrix) => {
+        let html = '<table>';
+        matrix.forEach(row => {
+            html += '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>';
+        });
+        return html + '</table>';
+    };
+
+    /**
+     * **NUEVA FUNCIÓN**
+     * Traduce funciones matemáticas comunes del español al inglés para math.js.
+     * Ej: sen -> sin, tg -> tan, ln -> log.
+     * Usa \b (word boundary) para evitar reemplazar "arsen" o "tangente".
+     */
+    const normalizeEquation = (eqStr) => {
+        if (!eqStr) return '';
+        return eqStr
+            .replace(/\bsen\b/g, 'sin')
+            .replace(/\btg\b/g, 'tan')
+            .replace(/\bln\b/g, 'log') // math.js 'log' es ln por defecto
+            .replace(/\bctg\b/g, 'cot')
+            .replace(/\bcsc\b/g, 'csc');
+        // 'cos' y 'sec' son iguales en ambos idiomas.
+        // 'pi' y 'e' son reconocidos por math.js como constantes.
+    };
+
+
+    // --- MENÚ PRINCIPAL ---
+    const showMainMenu = () => {
+        content.innerHTML = `
+            <h2>Selecciona un Método</h2>
+            <button class="btn" id="btn-fixed-point">Sist. No Lineales: Punto Fijo</button>
+            <button class="btn" id="btn-newton-nl">Sist. No Lineales: Newton-Raphson</button>
+        `;
+        document.getElementById('btn-fixed-point').addEventListener('click', () => switchView(showFixedPoint));
+        document.getElementById('btn-newton-nl').addEventListener('click', () => switchView(showNewtonRaphsonNL));
+    };
+
+    // --- 1. MÉTODO DE PUNTO FIJO (SISTEMAS) ---
+    const showFixedPoint = () => {
+        content.innerHTML = `
+            <h2>Sistemas No Lineales: Método de Punto Fijo</h2>
+            <div id="fp-setup">
+                <div class="input-group" style="max-width: 300px; margin: auto;">
+                    <label for="fp-n-vars">¿Cuántas variables tiene el sistema?</label>
+                    <select id="fp-n-vars" class="input-group-select">
+                        <option value="2" selected>2 (x, y)</option>
+                        <option value="3">3 (x, y, z)</option>
+                        <option value="4">4 (x, y, z, w)</option>
+                    </select>
+                </div>
+                
+                <div id="fp-inputs-container"></div>
+            </div>
+            <div id="fp-results" class="results-container hidden">
+                <div id="fp-despejes-results"></div>
+                <div id="fp-convergence-results"></div>
+                <div id="fp-table-results"></div>
+            </div>
+        `;
+        addBackButton();
+        
+        const nVarsSelector = document.getElementById('fp-n-vars');
+        nVarsSelector.addEventListener('change', () => createFixedPointInputs(nVarsSelector.value));
+        createFixedPointInputs(nVarsSelector.value); // Carga inicial
+    };
+
+    const createFixedPointInputs = (nStr) => {
+        const n = parseInt(nStr);
+        const container = document.getElementById('fp-inputs-container');
+        const varNames = ['x', 'y', 'z', 'w'].slice(0, n); // CAMBIO: Añadido 'w'
+        
+        let equationsHTML = `<h4>Paso 1: Ingresa las ecuaciones (f_i = 0)</h4>
+                             <p style="text-align:center; font-size: 0.9em;">Ingresa la ecuación original y el término lineal a despejar (ej: "-10*x" o "1*y").</p>`;
+        for (let i = 0; i < n; i++) {
+            equationsHTML += `<div class="equation-input">
+                <label for="fp-eq-${i}">f${i+1} =</label>
+                <input type="text" id="fp-f-eq-${i}" placeholder="Ecuación ${i+1} (ej: x^2 - 10*x + y^2 + 8)">
+                <label for="fp-term-${i}">Despejar:</label>
+                <input type="text" id="fp-term-${i}" placeholder="Término para ${varNames[i]} (ej: -10*x)">
+            </div>`;
+        }
+
+        let initialValuesHTML = '<h4>Paso 2: Valores iniciales y tolerancia</h4><div class="input-row">';
+        for (let i = 0; i < n; i++) {
+            initialValuesHTML += `<input type="number" id="fp-x0-${i}" placeholder="${varNames[i]}₀" value="0">`;
+        }
+        initialValuesHTML += `</div>
+            <div class="input-group" style="max-width:300px; margin: 1.5rem auto;">
+                <label for="fp-tol">Error Esperado (EP)</label>
+                <input type="number" id="fp-tol" placeholder="Ej: 0.05" value="0.05">
+            </div>`;
+        
+        container.innerHTML = equationsHTML + initialValuesHTML + '<button class="btn" id="fp-calculate">Calcular</button>';
+        document.getElementById('fp-calculate').addEventListener('click', calculateFixedPoint);
+    };
+
+    const calculateFixedPoint = () => {
+        try {
+            const n = parseInt(document.getElementById('fp-n-vars').value);
+            const varNames = ['x', 'y', 'z', 'w'].slice(0, n); // CAMBIO: Añadido 'w'
+            const tol = parseFloat(document.getElementById('fp-tol').value);
+            
+            let g_funcs = []; // Funciones g_i compiladas
+            let g_nodes = []; // Funciones g_i parseadas (para derivadas)
+            let k_values = []; // k_values = [x_k, y_k, ...]
+            let scope = {};
+            
+            for (let i = 0; i < n; i++) {
+                // --- CAMBIO: Normalizar ecuaciones ---
+                let f_str = normalizeEquation(document.getElementById(`fp-f-eq-${i}`).value);
+                let term_str = normalizeEquation(document.getElementById(`fp-term-${i}`).value);
+                // --- FIN CAMBIO ---
+
+                if (!f_str || !term_str) throw new Error("Todas las ecuaciones y términos a despejar deben estar completos.");
+                
+                // Extraer el coeficiente numérico del término
+                const coeff = parseFloat(term_str);
+                if (isNaN(coeff)) throw new Error(`El término a despejar "${term_str}" no es válido. Use "1*x", "-10*y", etc.`);
+
+                // Construir la ecuación g_i = (-1 * (f_i - term_i)) / coeff
+                const g_str = `(-1 * ( (${f_str}) - (${term_str}) )) / (${coeff})`;
+                
+                g_nodes.push(math.parse(g_str));
+                g_funcs.push(g_nodes[i].compile());
+                
+                k_values.push(parseFloat(document.getElementById(`fp-x0-${i}`).value));
+            }
+            
+            if (k_values.some(isNaN) || isNaN(tol)) throw new Error("Valores iniciales y tolerancia deben ser números.");
+
+            // --- 0. MOSTRAR DESPEJES ---
+            let despejesHTML = '<h4>Ecuaciones Despejadas (g_i)</h4>';
+            for (let i = 0; i < n; i++) {
+                // Simplificamos la fórmula para que sea más legible
+                despejesHTML += `<div class="equation">${varNames[i]} = ${math.simplify(g_nodes[i]).toString()}</div>`;
+            }
+            document.getElementById('fp-despejes-results').innerHTML = despejesHTML;
+
+            
+            // --- 1. CRITERIO DE CONVERGENCIA ---
+            varNames.forEach((v, i) => scope[v] = k_values[i]);
+            let convergenceHTML = '<h4>Criterio de Convergencia (en k=0)</h4><div class="convergence-check">';
+            let passesConvergence = true;
+
+            for (let i = 0; i < n; i++) { // Para |∂g₁/∂x| + |∂g₂/∂x| + ... (Columna)
+                let M_sum = 0;
+                let sumStr = `<b>Evaluando para ${varNames[i]}:</b><br>`;
+                for (let j = 0; j < n; j++) { // Suma de derivadas de g_j (Fila)
+                    const derivNode = math.derivative(g_nodes[j], varNames[i]).compile();
+                    const derivVal = Math.abs(derivNode.evaluate(scope));
+                    M_sum += derivVal;
+                    sumStr += `|∂g${j+1}/∂${varNames[i]}| = ${derivVal.toFixed(6)}<br>`;
+                }
+                convergenceHTML += `${sumStr}<b>Suma M_${varNames[i]} = ${M_sum.toFixed(6)}</b><br><br>`;
+                if (M_sum >= 1) passesConvergence = false;
+            }
+            
+            if (passesConvergence) {
+                convergenceHTML += '<b style="color:#28a745;">Resultado: Criterio < 1. ¡El método CONVERGE!</b>';
+            } else {
+                convergenceHTML += '<b>Resultado: Criterio >= 1. ADVERTENCIA: ¡El método podría DIVERGER!</b>';
+            }
+            convergenceHTML += '</div>';
+            document.getElementById('fp-convergence-results').innerHTML = convergenceHTML;
+            
+            // --- 2. ITERACIONES (Método Jacobi) ---
+            let iteration = 0;
+            const maxIterations = 100;
+            let Ep = Infinity;
+            let tableBodyHTML = '';
+            
+            let tableHeaderHTML = '<th>Iter.</th>';
+            varNames.forEach(v => tableHeaderHTML += `<th>${v}<sub>k</sub></th>`);
+            varNames.forEach(v => tableHeaderHTML += `<th>${v}<sub>k+1</sub></th>`);
+            tableHeaderHTML += '<th>EP</th>';
+
+            while (Ep > tol && iteration < maxIterations) {
+                iteration++;
+                let k_plus_1_values = [];
+                let scope_k = {}; // Este scope se basa SÓLO en k_values (Jacobi)
+                varNames.forEach((v, i) => scope_k[v] = k_values[i]);
+                
+                // Calcular todos los nuevos valores k+1 (Método Jacobi)
+                for (let i = 0; i < n; i++) {
+                    const new_val_i = g_funcs[i].evaluate(scope_k);
+                    k_plus_1_values.push(new_val_i);
+                    // NO actualizamos el scope_k aquí
+                }
+                
+                // Calcular Error (EP)
+                let sum_sq_diff = 0;
+                for (let i = 0; i < n; i++) {
+                    sum_sq_diff += Math.pow(k_plus_1_values[i] - k_values[i], 2);
+                }
+                Ep = Math.sqrt(sum_sq_diff);
+                
+                // Construir fila de la tabla
+                let rowHTML = `<td>${iteration}</td>`;
+                k_values.forEach(v => rowHTML += `<td>${v.toFixed(8)}</td>`);
+                k_plus_1_values.forEach(v => rowHTML += `<td>${v.toFixed(8)}</td>`);
+                rowHTML += `<td>${Ep.toFixed(8)}</td>`;
+                
+                const highlightClass = (Ep <= tol) ? 'class="highlight-row"' : '';
+                tableBodyHTML += `<tr ${highlightClass}>${rowHTML}</tr>`;
+
+                // Actualizar valores para la siguiente iteración
+                k_values = [...k_plus_1_values];
+                
+                if (Ep <= tol) break; // Detenerse si se alcanza la tolerancia
+            }
+            
+            const resultsTableContainer = document.getElementById('fp-table-results');
+            resultsTableContainer.innerHTML = `<h4>Tabla de Iteraciones</h4>
+                                              <div style="overflow-x:auto;">
+                                                 <table class="results-table">
+                                                    <thead><tr>${tableHeaderHTML}</tr></thead>
+                                                    <tbody>${tableBodyHTML}</tbody>
+                                                 </table>
+                                              </div>`;
+            document.getElementById('fp-results').classList.remove('hidden');
+
+            if (iteration >= maxIterations) {
+                 alert("El método no convergió después de " + maxIterations + " iteraciones.");
+            }
+
+        } catch (e) {
+            alert(`Error: ${e.Error}\n\nMensaje: ${e.message}`);
+        }
+    };
+
+
+    // --- 2. MÉTODO DE NEWTON-RAPHSON (SISTEMAS) ---
+    const showNewtonRaphsonNL = () => {
+        content.innerHTML = `
+            <h2>Sistemas No Lineales: Método de Newton-Raphson</h2>
+            <div id="nr-setup">
+                <div class="input-group" style="max-width: 300px; margin: auto;">
+                    <label for="nr-n-vars">¿Cuántas variables tiene el sistema?</label>
+                    <select id="nr-n-vars" class="input-group-select">
+                        <option value="2" selected>2 (x, y)</option>
+                        <option value="3">3 (x, y, z)</option>
+                        <option value="4">4 (x, y, z, w)</option> </select>
+                </div>
+                <div id="nr-inputs-container"></div>
+            </div>
+            <div id="nr-results" class="results-container hidden">
+                <div id="nr-iteration-boxes"></div>
+                <button classid="nr-next-iter-btn" class="btn">Siguiente Iteración</button>
+            </div>
+        `;
+        addBackButton();
+        
+        const nVarsSelector = document.getElementById('nr-n-vars');
+        nVarsSelector.addEventListener('change', () => createNewtonInputs(nVarsSelector.value));
+        createNewtonInputs(nVarsSelector.value); // Carga inicial
+    };
+    
+    const createNewtonInputs = (nStr) => {
+        const n = parseInt(nStr);
+        const container = document.getElementById('nr-inputs-container');
+        const variables = ['x', 'y', 'z', 'w'].slice(0, n); 
+        
+        let equationsHTML = '<h4>Paso 1: Ingresa las ecuaciones (igualadas a 0)</h4>';
+        for (let i = 0; i < n; i++) {
+            equationsHTML += `<div class="equation-input" style="grid-template-columns: auto 1fr;">
+                <label for="nr-eq-${i}">f${i+1}(${variables.join(',')}) =</label>
+                <input type="text" id="nr-eq-${i}" placeholder="Ej: x^2 + y^2 - 4">
+            </div>`;
+        }
+
+        let initialValuesHTML = '<h4>Paso 2: Valores iniciales</h4><div class="input-row">';
+        for (let i = 0; i < n; i++) {
+            initialValuesHTML += `<input type="number" id="nr-x0-${i}" placeholder="${variables[i]}₀" value="1">`;
+        }
+        initialValuesHTML += `</div>`;
+        
+        container.innerHTML = equationsHTML + initialValuesHTML + '<button class="btn" id="nr-start-calculate">Iniciar Cálculo</button>';
+        document.getElementById('nr-start-calculate').addEventListener('click', startNewtonCalculation);
+    };
+
+    const startNewtonCalculation = () => {
+        try {
+            const n = parseInt(document.getElementById('nr-n-vars').value);
+            const variables = ['x', 'y', 'z', 'w'].slice(0, n); 
+            let equations = [];
+            let initial_values = [];
+
+            let f_nodes = [];
+            let j_nodes = [];
+            let j_formulas = [];
+            
+            for (let i = 0; i < n; i++) {
+                // --- CAMBIO: Normalizar ecuaciones ---
+                let eqStr = normalizeEquation(document.getElementById(`nr-eq-${i}`).value);
+                // --- FIN CAMBIO ---
+
+                if (!eqStr) throw new Error("Todas las ecuaciones deben estar completas.");
+                equations.push(eqStr);
+                initial_values.push(parseFloat(document.getElementById(`nr-x0-${i}`).value));
+                f_nodes.push(math.parse(eqStr));
+            }
+
+            if (initial_values.some(isNaN)) throw new Error("Valores iniciales deben ser números.");
+            
+            // Pre-calcular Jacobiana (fórmulas)
+            for (let i = 0; i < n; i++) {
+                let j_row_nodes = [];
+                let j_row_formulas = [];
+                for (let j = 0; j < n; j++) {
+                    const deriv = math.derivative(f_nodes[i], variables[j]);
+                    j_row_nodes.push(deriv.compile());
+                    j_row_formulas.push(deriv.toString());
+                }
+                j_nodes.push(j_row_nodes);
+                j_formulas.push(j_row_formulas);
+            }
+
+            // Guardar estado
+            nr_state = {
+                n: n,
+                variables: variables,
+                current_values: initial_values,
+                iter_count: 0,
+                f_compiled: f_nodes.map(node => node.compile()),
+                j_compiled: j_nodes,
+                j_formulas_html: formulasToHTML(j_formulas)
+            };
+            
+            // Ocultar setup, mostrar resultados y correr primera iteración
+            document.getElementById('nr-setup').classList.add('hidden');
+            const resultsContainer = document.getElementById('nr-results');
+            resultsContainer.classList.remove('hidden');
+            resultsContainer.innerHTML = '<div id="nr-iteration-boxes"></div><button id="nr-next-iter-btn" class="btn">Siguiente Iteración</button>';
+            document.getElementById('nr-next-iter-btn').addEventListener('click', runNextNewtonIteration);
+            
+            runNextNewtonIteration(); // Correr la primera iteración
+
+        } catch (e) {
+            alert(`Error iniciando: ${e.message}`);
+        }
+    };
+
+    const runNextNewtonIteration = () => {
+        try {
+            const { n, variables, current_values, iter_count, f_compiled, j_compiled, j_formulas_html } = nr_state;
+            
+            nr_state.iter_count++;
+            const old_values = [...current_values];
+            let scope = {};
+            variables.forEach((v, i) => scope[v] = old_values[i]);
+
+            // 1. Evaluar F(X_k)
+            const F_evaluated = f_compiled.map(f => f.evaluate(scope) * -1); // F(X_k)
+            
+            // 2. Evaluar J(X_k)
+            const J_evaluated = j_compiled.map(row => row.map(node => node.evaluate(scope)));
+            
+            // 3. Resolver J(X_k) * delta_X = -F(X_k)
+            const delta_X = math.lusolve(J_evaluated, F_evaluated);
+            
+            // 4. Calcular X_k+1 = X_k + delta_X
+            const delta_X_flat = delta_X.map(d => d[0]);
+            const new_values = math.add(old_values, delta_X_flat);
+            
+            // 5. Calcular Errores
+            const errors = new_values.map((val, i) => {
+                return val !== 0 ? Math.abs((val - old_values[i]) / val) : 0;
+            });
+
+            // 6. Actualizar estado
+            nr_state.current_values = new_values;
+
+            // 7. Renderizar la caja de iteración
+            const iterBox = document.createElement('div');
+            iterBox.className = 'iteration-box';
+            
+            let html = `<h3>Iteración ${nr_state.iter_count}</h3>`;
+            html += `<b>Valores Iniciales X<sub>k</sub>:</b> ${vectorToHTML(old_values, true)}`;
+            html += `<b>Matriz Jacobiana (J):</b> ${j_formulas_html}`;
+            html += `<b>J evaluada en X<sub>k</sub>:</b> ${matrixToHTML(J_evaluated)}`;
+            
+            try {
+                const J_inv = math.inv(J_evaluated);
+                html += `<b>Inversa de la Jacobiana (J⁻¹):</b> ${matrixToHTML(J_inv)}`;
+            } catch (e) {
+                html += `<b>Inversa de la Jacobiana (J⁻¹):</b> <span style="color:red;">Matriz singular, no se puede invertir.</span>`;
+            }
+
+            html += `<b>Vector -F(X<sub>k</sub>):</b> ${vectorToHTML(F_evaluated)}`;
+            html += `<b>Solución de J * ΔX = -F  (Valores de ΔX):</b> ${vectorToHTML(delta_X_flat, true)}`;
+            html += `<b>Nuevos Valores (X<sub>k+1</sub> = X<sub>k</sub> + ΔX):</b> <b style="color:#28a745;">${vectorToHTML(new_values, true)}</b>`;
+            html += `<b>Errores (Ea):</b> ${vectorToHTML(errors, true)}`;
+
+            iterBox.innerHTML = html;
+            document.getElementById('nr-iteration-boxes').appendChild(iterBox);
+
+            // Detener si el error es bajo
+            if (Math.max(...errors) < 0.000001) { // Tolerancia fija pequeña
+                document.getElementById('nr-next-iter-btn').textContent = "Convergencia alcanzada";
+                document.getElementById('nr-next-iter-btn').disabled = true;
+            }
+
+        } catch (e) {
+            alert(`Error en la iteración: ${e.message}`);
+            document.getElementById('nr-next-iter-btn').textContent = "Error";
+            document.getElementById('nr-next-iter-btn').disabled = true;
+        }
+    };
+
+
+    // Iniciar la aplicación
+    showMainMenu();
+});
+</script>
+
+</body>
+</html>
