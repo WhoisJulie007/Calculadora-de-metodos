@@ -151,7 +151,7 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 ## 👨‍💻 Autor
 
-Desarrollado como proyecto académico para Métodos Numéricos.
+Julia Castan
 
 ## 🙏 Agradecimientos
 
